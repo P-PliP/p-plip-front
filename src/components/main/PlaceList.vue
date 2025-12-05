@@ -2,23 +2,24 @@
   <div 
     ref="listContainer"
     class="place-list-container" 
-    @touchstart="onTouchStart" 
-    @touchend="onTouchEnd"
   >
-    <button 
-      class="close-btn" 
-      @click="$emit('close')"
-      @mousedown="startDrag"
-      @touchstart="startDrag"
-    >닫기</button>
-    <h2 class="section-title">주변 추천 장소</h2>
+    <div class="place-list-header">
+      <button 
+        class="close-btn" 
+        @click="$emit('close')"
+        @mousedown="startDrag"
+        @touchstart="startDrag"
+      >닫기</button>
+      <h2 class="section-title">주변 추천 장소</h2>
+    </div>
     
-    <div class="place-list">
+    <div class="place-list" ref="scrollContainer">
       <div v-for="place in places" :key="place.id" class="place-card">
         <div class="place-image" :style="{ backgroundImage: `url(${place.image})` }"></div>
         <div class="place-info">
           <h3 class="place-name">{{ place.name }}</h3>
           <p class="place-desc">{{ place.description }}</p>
+          <button class="detail-btn">자세히 보기</button>
         </div>
       </div>
     </div>
@@ -30,27 +31,7 @@ import { ref } from 'vue';
 
 const emit = defineEmits(['close']);
 const listContainer = ref(null);
-const startY = ref(0);
-
-const onTouchStart = (e) => {
-  startY.value = e.touches[0].clientY;
-};
-
-const onTouchEnd = (e) => {
-  const endY = e.changedTouches[0].clientY;
-  // If swiping down (endY > startY) and at the top of the list
-  if (listContainer.value.scrollTop <= 0 && endY - startY.value > 50) {
-    emit('close');
-  }
-};
-
-const onWheel = (e) => {
-  // If scrolling up (deltaY < 0) and at the top of the list
-  // Using a threshold to prevent accidental closes
-  if (listContainer.value.scrollTop <= 0 && e.deltaY < -30) {
-    emit('close');
-  }
-};
+const scrollContainer = ref(null);
 
 // Handle Bar Drag Logic
 const isDragging = ref(false);
@@ -121,21 +102,36 @@ const places = ref([
 .place-list-container {
   background: white;
   border-radius: 20px 20px 0 0;
-  padding: 20px;
+  padding: 20px 20px 0 20px; /* Remove bottom padding from container */
   box-shadow: 0 -4px 10px rgba(0,0,0,0.1);
   height: 100%;
-  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
-.place-list-container::-webkit-scrollbar {
+.place-list-header {
+  flex-shrink: 0;
+}
+
+.place-list {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-bottom: 80px; /* Space for NavBar */
+}
+
+.place-list::-webkit-scrollbar {
   width: 4px;
 }
 
-.place-list-container::-webkit-scrollbar-track {
+.place-list::-webkit-scrollbar-track {
   background: transparent;
 }
 
-.place-list-container::-webkit-scrollbar-thumb {
+.place-list::-webkit-scrollbar-thumb {
   background-color: rgba(0, 0, 0, 0.2);
   border-radius: 4px;
 }
@@ -190,6 +186,8 @@ const places = ref([
 
 .place-info {
   flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 .place-name {
@@ -202,7 +200,23 @@ const places = ref([
 .place-desc {
   font-size: 13px;
   color: #666;
-  margin: 0;
+  margin: 0 0 8px;
   line-height: 1.4;
+}
+
+.detail-btn {
+  align-self: flex-end;
+  padding: 6px 12px;
+  background: #007bff;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.detail-btn:hover {
+  background: #0056b3;
 }
 </style>
