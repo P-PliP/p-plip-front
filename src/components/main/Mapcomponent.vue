@@ -1,6 +1,6 @@
 <template>
-  <div>
-    <KakaoMap :lat="coordinate.lat" :lng="coordinate.lng" :draggable="true" width="100%" height="400px">
+  <div class="map-container">
+    <KakaoMap :lat="coordinate.lat" :lng="coordinate.lng" :draggable="true" width="100%" height="100%">
         <KakaoMapMarker :lat="coordinate.lat" :lng="coordinate.lng"></KakaoMapMarker>
     </KakaoMap>
   </div>
@@ -16,8 +16,8 @@ const coordinate = {
 </script>
 
 <style scoped>
-#map {
+.map-container {
     width: 100%;
-    height: 300px;
+    height: 100%;
 }
 </style>

@@ -1,7 +1,15 @@
 <template>
-  <div>
-    <input v-model="searchQuery" type="text" placeholder="Search">
-    <button @click="handleSearch">Search</button>
+  <div class="search-bar-container">
+    <div class="search-input-wrapper">
+      <span class="search-icon" @click="handleSearch">🔍</span>
+      <input 
+        v-model="searchQuery" 
+        type="text" 
+        placeholder="장소 또는 지역 검색" 
+        class="search-input"
+        @keyup.enter="handleSearch"
+      >
+    </div>
   </div>
 </template>
 
@@ -30,5 +38,35 @@ const handleSearch = async () => {
 </script>
 
 <style scoped>
+.search-bar-container {
+  width: 100%;
+  padding: 0 4px;
+}
 
+.search-input-wrapper {
+  display: flex;
+  align-items: center;
+  background: white;
+  border-radius: 12px;
+  padding: 12px 16px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.search-icon {
+  margin-right: 12px;
+  font-size: 18px;
+  color: #666;
+}
+
+.search-input {
+  border: none;
+  outline: none;
+  font-size: 16px;
+  width: 100%;
+  color: #333;
+}
+
+.search-input::placeholder {
+  color: #999;
+}
 </style>
