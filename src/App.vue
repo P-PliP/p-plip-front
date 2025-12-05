@@ -1,7 +1,33 @@
-<script setup></script>
-
 <template>
-  <router-view />
+  <div class="app-container">
+    <router-view />
+  </div>
 </template>
 
-<style scoped></style>
+<style>
+body {
+  margin: 0;
+  background-color: #f0f2f5;
+  display: flex;
+  justify-content: center;
+  min-height: 100vh;
+}
+
+#app {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+</style>
+
+<style scoped>
+.app-container {
+  width: 100%;
+  max-width: 430px; /* Mobile width */
+  min-height: 100vh;
+  background-color: white;
+  position: relative;
+  box-shadow: 0 0 20px rgba(0,0,0,0.1);
+  overflow: hidden;
+}
+</style>
