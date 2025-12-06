@@ -1,7 +1,7 @@
 <template>
   <div class="free-board-container">
     <!-- Filters -->
-    <div class="filter-chips">
+    <div class="filter-chips" v-if="filterType !== 'my-posts'">
       <button 
         class="chip" 
         :class="{ active: activeFilter === 'popular' }"
@@ -21,19 +21,12 @@
     <!-- Grid -->
     <div class="post-grid">
       <div 
-        v-for="post in posts" 
+        v-for="post in displayPosts" 
         :key="post.id" 
         class="post-card"
         @click="goToDetail(post.id)"
       >
         <div class="card-image" :style="{ backgroundImage: `url(${post.image})` }">
-          <button class="more-btn" @click.stop>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M12 13C12.5523 13 13 12.5523 13 12C13 11.4477 12.5523 11 12 11C11.4477 11 11 11.4477 11 12C11 12.5523 11.4477 13 12 13Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              <path d="M19 13C19.5523 13 20 12.5523 20 12C20 11.4477 19.5523 11 19 11C18.4477 11 18 11.4477 18 12C18 12.5523 18.4477 13 19 13Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              <path d="M5 13C5.55228 13 6 12.5523 6 12C6 11.4477 5.55228 11 5 11C4.44772 11 4 11.4477 4 12C4 12.5523 4.44772 13 5 13Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </button>
         </div>
         <div class="card-content">
           <h3 class="post-title">{{ post.title }}</h3>
@@ -67,7 +60,7 @@
     </div>
 
     <!-- Write FAB -->
-    <button class="write-fab" @click="goToWrite">
+    <button class="write-fab" @click="goToWrite" v-if="filterType !== 'my-posts'">
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M12 5V19M5 12H19" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
@@ -76,8 +69,15 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
+
+const props = defineProps({
+  filterType: {
+    type: String,
+    default: 'all' // 'all', 'my-posts'
+  }
+});
 
 const router = useRouter();
 const activeFilter = ref('popular');
@@ -93,7 +93,7 @@ const posts = ref([
   {
     id: 1,
     title: '갑자기 떠난 강릉 바다 후기',
-    author: '바다여행자',
+    author: '탐험가 Alex',
     avatarColor: '#E0C3A5',
     likes: 128,
     comments: 12,
@@ -122,7 +122,7 @@ const posts = ref([
   {
     id: 4,
     title: '나만 알고 싶은 서울 야경 스팟',
-    author: '야경헌터',
+    author: '탐험가 Alex',
     avatarColor: '#C7CEEA',
     likes: 87,
     comments: 9,
@@ -147,6 +147,18 @@ const posts = ref([
     image: 'https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80'
   }
 ]);
+
+const displayPosts = computed(() => {
+  let filtered = posts.value;
+  
+  if (props.filterType === 'my-posts') {
+    filtered = filtered.filter(post => post.author === '탐험가 Alex');
+  }
+  
+  // Sorting logic can be added here based on activeFilter
+  
+  return filtered;
+});
 </script>
 
 <style scoped>

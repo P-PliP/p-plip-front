@@ -19,13 +19,13 @@
           <span class="stat-label">내 플랜</span>
         </div>
         <div class="stat-card">
-          <span class="stat-value text-sm">즉흥적 모험가</span>
-          <span class="stat-label">나의 여행 유형</span>
+          <span class="stat-value text-sm">부산 맛집 탐방기</span>
+          <span class="stat-label">최근 플랜</span>
         </div>
       </div>
 
       <!-- Action Button -->
-      <button class="action-btn">
+      <button class="action-btn" @click="$router.push({ name: 'my-plans' })">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="btn-icon">
           <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
           <path d="M12 16L16 12L12 8" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -40,7 +40,7 @@
       <div class="menu-section">
         <h3 class="section-title">더보기</h3>
         <ul class="menu-list">
-          <li class="menu-item">
+          <li class="menu-item" @click="$router.push({ name: 'my-posts' })">
             <div class="menu-icon">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M11 4H4V20H20V14" stroke="#666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
