@@ -30,12 +30,16 @@
     <!-- Content -->
     <div class="post-text-content">
       <p class="post-body">{{ post.content }}</p>
-      <p class="post-date">{{ post.date }}</p>
+      <p class="post-date">{{ formatTime(post.date) }}</p>
     </div>
   </div>
 </template>
 
 <script setup>
+import { useRelativeTime } from '@/composables/useRelativeTime';
+
+const { formatTime } = useRelativeTime();
+
 defineProps({
   post: {
     type: Object,
@@ -57,6 +61,7 @@ defineProps({
 .board-detail-content {
   display: flex;
   flex-direction: column;
+  padding-top: 15px; /* Add space between header separator and content */
 }
 
 .image-carousel {

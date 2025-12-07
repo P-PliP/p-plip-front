@@ -138,6 +138,7 @@ const handleLogout = () => {
   background-color: white;
   display: flex;
   flex-direction: column;
+  touch-action: none; /* Prevent whole page drag */
 }
 
 .content-wrapper {
@@ -145,6 +146,8 @@ const handleLogout = () => {
   padding: 20px;
   overflow-y: auto;
   padding-bottom: 100px; /* Space for bottom nav */
+  touch-action: pan-y; /* Allow vertical scrolling */
+  overscroll-behavior: contain;
 }
 
 /* Custom Scrollbar removed - handled globally */

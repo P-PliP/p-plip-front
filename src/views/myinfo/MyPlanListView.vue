@@ -144,12 +144,35 @@ const goToPlanDetail = (id) => {
 
 <style scoped>
 
-/* Container replaced by AppPage */
-.my-plan-list-page {
-  /* Inherits traits */
-}
 
 /* Header Replaced */
+.my-plan-list-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background-color: #f9f9f9;
+  touch-action: none; /* Prevent whole page drag */
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 20px;
+  padding-top: calc(12px + env(safe-area-inset-top));
+  background: white;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.header-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #333;
+  margin: 0;
+}
+
 .icon-btn {
   /* Only used for sort button now, kept structure */
   width: 40px;
@@ -203,6 +226,8 @@ const goToPlanDetail = (id) => {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  touch-action: pan-y; /* Allow vertical scrolling */
+  overscroll-behavior: contain;
 }
 
 .empty-state {

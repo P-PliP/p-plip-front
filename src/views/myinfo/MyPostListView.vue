@@ -28,6 +28,7 @@ import FreeBoardList from '@/components/board/list/FreeBoardList.vue';
   flex-direction: column;
   height: 100vh;
   background-color: #f9f9f9;
+  touch-action: none; /* Prevent whole page drag */
 }
 
 .header {
@@ -69,5 +70,7 @@ import FreeBoardList from '@/components/board/list/FreeBoardList.vue';
 .post-list-wrapper {
   flex: 1;
   overflow-y: auto;
+  touch-action: pan-y; /* Allow vertical scrolling */
+  overscroll-behavior: contain;
 }
 </style>

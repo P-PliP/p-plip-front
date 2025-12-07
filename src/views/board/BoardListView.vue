@@ -57,6 +57,7 @@ import NavBar from '@/components/common/Navbar.vue';
   background-color: #f8f9fa;
   display: flex;
   flex-direction: column;
+  touch-action: none; /* Prevent whole page drag */
 }
 
 .board-header {
@@ -116,6 +117,8 @@ import NavBar from '@/components/common/Navbar.vue';
   flex: 1;
   overflow-y: auto;
   padding-bottom: 80px; /* Space for bottom nav */
+  touch-action: pan-y; /* Allow vertical scrolling */
+  overscroll-behavior: contain;
 }
 
 .bottom-nav {

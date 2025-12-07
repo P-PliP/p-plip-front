@@ -20,10 +20,10 @@
             <!-- Card Item -->
             <div v-for="trip in ongoingTrips" :key="trip.id" class="ongoing-card">
               <div class="card-image-wrapper" :style="{ backgroundImage: `url(${trip.image})` }">
-                <span class="d-day-badge">D-{{ trip.dDay }}</span>
+                <span class="d-day-badge">{{ calculateDDay(trip.startDate) }}</span>
                 <div class="card-overlay">
                   <h3 class="trip-title">{{ trip.title }}</h3>
-                  <p class="trip-date">{{ trip.date }}</p>
+                  <p class="trip-date">{{ trip.startDate }} - {{ trip.endDate }}</p>
                 </div>
               </div>
               <div class="card-footer">
@@ -47,7 +47,7 @@
               <div class="past-card-image" :style="{ backgroundImage: `url(${trip.image})` }"></div>
               <div class="past-card-info">
                 <h3 class="past-trip-title">{{ trip.title }}</h3>
-                <p class="past-trip-date">{{ trip.date }}</p>
+                <p class="past-trip-date">{{ trip.startDate }} - {{ trip.endDate }}</p>
               </div>
             </div>
           </div>
@@ -78,16 +78,16 @@ const ongoingTrips = ref([
   {
     id: 1,
     title: '제주도 힐링 여행',
-    date: '2023.11.15 - 2023.11.18',
-    dDay: 5,
+    startDate: '2023.11.15',
+    endDate: '2023.11.18',
     progress: 20,
     image: 'https://images.unsplash.com/photo-1544644181-1484b3fdfc62?q=80&w=800&auto=format&fit=crop'
   },
   {
     id: 2,
     title: '부산 먹방 투어',
-    date: '2023.12.20 - 2023.12.22',
-    dDay: 35,
+    startDate: '2023.12.20',
+    endDate: '2023.12.22',
     progress: 0,
     image: 'https://images.unsplash.com/photo-1634882194607-d57b49467652?q=80&w=800&auto=format&fit=crop'
   }
@@ -97,16 +97,34 @@ const pastTrips = ref([
   {
     id: 101,
     title: '강릉 식도락 여행',
-    date: '2023.08.01 - 2023.08.03',
+    startDate: '2023.08.01',
+    endDate: '2023.08.03',
     image: 'https://images.unsplash.com/photo-1554652285-b9f2ad8708c0?q=80&w=400&auto=format&fit=crop'
   },
   {
     id: 102,
     title: '부산 뚜벅이 여행',
-    date: '2023.05.10 - 2023.05.12',
+    startDate: '2023.05.10',
+    endDate: '2023.05.12',
     image: 'https://images.unsplash.com/photo-1582218000305-6497fba9d168?q=80&w=400&auto=format&fit=crop'
   }
 ]);
+
+const calculateDDay = (startDate) => {
+  const today = new Date();
+  // Reset time to midnight for accurate day calculation
+  today.setHours(0, 0, 0, 0);
+  
+  const targetDate = new Date(startDate);
+  targetDate.setHours(0, 0, 0, 0);
+  
+  const diffTime = targetDate - today;
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  
+  if (diffDays === 0) return 'D-Day';
+  if (diffDays < 0) return `D+${Math.abs(diffDays)}`;
+  return `D-${diffDays}`;
+};
 
 const continuePlan = (id) => {
   console.log('Continue plan', id);
@@ -150,12 +168,15 @@ const onDrag = (e) => {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  touch-action: none; /* Prevent whole page drag */
 }
 
 .scroll-container {
   flex: 1;
   overflow-y: auto;
   padding-bottom: 100px; /* Space for FAB and Bottom Nav */
+  touch-action: pan-y; /* Allow vertical scrolling */
+  overscroll-behavior: contain;
 }
 
 .header {
@@ -194,6 +215,7 @@ const onDrag = (e) => {
   padding-bottom: 1px; /* Avoid clip */
   /* Hide scrollbar */
   scrollbar-width: none; 
+  touch-action: pan-x pan-y; /* Allow horizontal scroll and vertical page scroll */
 }
 .ongoing-list::-webkit-scrollbar {
   display: none;
