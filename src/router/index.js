@@ -34,6 +34,11 @@ const router = createRouter({
       component: MyPlanListView
     },
     {
+      path: '/my-plans/:id/todo',
+      name: 'todo-list',
+      component: () => import('@/views/myinfo/ToDoListView.vue')
+    },
+    {
       path: '/my-posts',
       name: 'my-posts',
       component: MyPostListView

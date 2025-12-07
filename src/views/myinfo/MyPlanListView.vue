@@ -139,9 +139,7 @@ onUnmounted(() => {
 });
 
 const goToPlanDetail = (id) => {
-  // Navigate to plan detail (to be implemented or reused)
-  console.log('Navigate to plan:', id);
-  // router.push({ name: 'plan-detail', params: { id } });
+  router.push({ name: 'todo-list', params: { id } });
 };
 </script>
 

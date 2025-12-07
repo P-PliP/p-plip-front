@@ -36,33 +36,7 @@ export default defineConfig({
         ]
       }
     }),
-    vueDevTools(),
-    VitePWA({
-      registerType: 'autoUpdate',
-      manifest: {
-        name: 'PPLIP',
-        short_name: 'PPLIP',
-        start_url: '/',
-        display: 'standalone',
-        theme_color: '#ffffff',
-        background_color: '#ffffff',
-        icons: [
-          {
-            src: '/pplip.png',
-            sizes: '192x192',
-            type: 'image/png',
-          },
-          {
-            src: '/pplip.png',
-            sizes: '512x512',
-            type: 'image/png',
-          },
-        ],
-      },
-      devOptions: {
-        enabled: true,
-      },
-    }),
+    vueDevTools()
   ],
   server: {
     // 모든 외부 호스트 접속 허용
