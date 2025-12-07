@@ -1,5 +1,5 @@
 <template>
-  <div class="todo-list-container">
+  <AppPage class="todo-list-page">
     <!-- UI Overlay (Sticky) -->
     <div class="ui-overlay">
       <button class="fab-btn" @click="openCreateModal">
@@ -16,15 +16,11 @@
     </div>
 
     <!-- Header -->
-    <div class="header">
-      <button class="icon-btn back-btn" @click="$router.back()">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="#333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-      </button>
-      <h2 class="header-title">{{ planTitle }}</h2>
-      <div class="header-right"></div>
-    </div>
+    <AppHeader :title="planTitle">
+      <template #right>
+        <div class="header-right"></div>
+      </template>
+    </AppHeader>
 
     <!-- Timeline Content -->
     <div class="timeline-content" ref="scrollContainer">
@@ -91,7 +87,7 @@
       @close="closeModal"
       @save="onSaveTodo"
     />
-  </div>
+</AppPage>
 </template>
 
 <script setup>
@@ -99,6 +95,8 @@ import { ref, computed, onMounted, nextTick } from 'vue';
 import { useRoute } from 'vue-router';
 import draggable from 'vuedraggable';
 import ToDoModal from '@/components/my/ToDoModal.vue';
+import AppHeader from '@/components/common/AppHeader.vue';
+import AppPage from '@/components/common/AppPage.vue';
 
 const route = useRoute();
 const planTitle = ref('제주도 힐링 여행'); // Mock title
@@ -304,36 +302,17 @@ const scrollToCurrent = () => {
 </script>
 
 <style scoped>
-.todo-list-container {
-  min-height: 100vh;
-  background: #f8f9fa;
-  display: flex;
-  flex-direction: column;
+/* Scoped overrides if needed */
+.todo-list-page {
+  /* Inherits min-height 100vh from AppPage */
 }
 
-.header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 16px 20px;
-  background: white;
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  border-bottom: 1px solid rgba(0,0,0,0.05);
-}
-
-.header-title {
-  font-size: 18px;
-  font-weight: 700;
-  color: #333;
-}
+/* Header styles removed, using AppHeader */
 
 .icon-btn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 8px;
+  /* Helper mostly replaced, but kept if used elsewhere? 
+     AppHeader handles the back button. 
+  */
 }
 
 .timeline-content {

@@ -1,14 +1,10 @@
 <template>
-  <div class="profile-edit-container">
-    <div class="header">
-      <button class="icon-btn back-btn" @click="$router.back()">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="#333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-      </button>
-      <h2 class="header-title">프로필 수정</h2>
-      <button class="save-btn" @click="saveProfile">저장</button>
-    </div>
+  <AppPage class="profile-edit-page">
+    <AppHeader title="프로필 수정">
+      <template #right>
+        <button class="save-btn" @click="saveProfile">저장</button>
+      </template>
+    </AppHeader>
 
     <div class="content">
       <!-- Profile Image -->
@@ -46,12 +42,14 @@
         <textarea v-model="description" class="input-field textarea-field" placeholder="자기소개를 입력하세요"></textarea>
       </div>
     </div>
-  </div>
+  </AppPage>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
+import AppHeader from '@/components/common/AppHeader.vue';
+import AppPage from '@/components/common/AppPage.vue';
 
 const router = useRouter();
 const fileInput = ref(null);
@@ -102,35 +100,12 @@ const saveProfile = () => {
 </script>
 
 <style scoped>
-.profile-edit-container {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  background-color: white;
+
+.profile-edit-page {
+  background-color: white; /* Override default gray from AppPage */
 }
 
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px 20px;
-  padding-top: calc(12px + env(safe-area-inset-top));
-  background: white;
-  border-bottom: 1px solid #f0f0f0;
-}
-
-.header-title {
-  font-size: 18px;
-  font-weight: 700;
-  color: #333;
-}
-
-.icon-btn {
-  background: none;
-  border: none;
-  padding: 0;
-  cursor: pointer;
-}
+/* Header Replaced */
 
 .save-btn {
   background: none;
