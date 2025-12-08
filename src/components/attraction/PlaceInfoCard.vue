@@ -1,6 +1,11 @@
 <template>
   <div class="content-card">
-    <h1 class="place-title">{{ place.name }}</h1>
+    <div class="title-row">
+      <h1 class="place-title">{{ place.name }}</h1>
+      <button class="review-link" @click="goToReview">
+        리뷰 120개 <span class="material-icons">></span>
+      </button>
+    </div>
     <p class="place-description">{{ place.description }}</p>
     
     <div class="tags">
@@ -21,6 +26,17 @@ defineProps({
     })
   }
 });
+
+import { useRouter, useRoute } from 'vue-router';
+const router = useRouter();
+const route = useRoute();
+
+const goToReview = () => {
+  // Assuming the place ID is available in the current route params
+  // or passed via props. For now, using route params as default
+  const placeId = route.params.id || 1; 
+  router.push({ name: 'place-reviews', params: { id: placeId } });
+};
 </script>
 
 <style scoped>
@@ -36,7 +52,31 @@ defineProps({
   font-size: 24px;
   font-weight: 800;
   color: #333;
-  margin: 0 0 12px;
+  margin: 0;
+}
+
+.title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.review-link {
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  color: #0095f6;
+  background: none;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+}
+
+.review-link .material-icons {
+  font-size: 16px;
+  margin-left: 2px;
 }
 
 .place-description {

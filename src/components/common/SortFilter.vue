@@ -11,18 +11,13 @@
     
     <div v-if="isOpen" class="sort-menu">
       <button 
+        v-for="option in options"
+        :key="option.value"
         class="sort-option" 
-        :class="{ active: modelValue === 'desc' }" 
-        @click="selectSort('desc')"
+        :class="{ active: modelValue === option.value }" 
+        @click="selectSort(option.value)"
       >
-        최신순
-      </button>
-      <button 
-        class="sort-option" 
-        :class="{ active: modelValue === 'asc' }" 
-        @click="selectSort('asc')"
-      >
-        오래된순
+        {{ option.label }}
       </button>
     </div>
   </div>
@@ -34,7 +29,14 @@ import { ref, onMounted, onUnmounted } from 'vue';
 const props = defineProps({
   modelValue: {
     type: String,
-    default: 'desc'
+    required: true
+  },
+  options: {
+    type: Array,
+    default: () => [
+      { label: '최신순', value: 'desc' },
+      { label: '오래된순', value: 'asc' }
+    ]
   }
 });
 
@@ -47,8 +49,8 @@ const toggleMenu = () => {
   isOpen.value = !isOpen.value;
 };
 
-const selectSort = (order) => {
-  emit('update:modelValue', order);
+const selectSort = (value) => {
+  emit('update:modelValue', value);
   isOpen.value = false;
 };
 
@@ -70,6 +72,7 @@ onUnmounted(() => {
 <style scoped>
 .sort-wrapper {
   position: relative;
+  display: inline-block;
 }
 
 .icon-btn {

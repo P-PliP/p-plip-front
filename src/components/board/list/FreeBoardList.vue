@@ -1,21 +1,11 @@
 <template>
   <div class="free-board-container">
     <!-- Filters -->
-    <div class="filter-chips" v-if="filterType !== 'my-posts'">
-      <button 
-        class="chip" 
-        :class="{ active: activeFilter === 'popular' }"
-        @click="activeFilter = 'popular'"
-      >
-        인기순
-      </button>
-      <button 
-        class="chip" 
-        :class="{ active: activeFilter === 'latest' }"
-        @click="activeFilter = 'latest'"
-      >
-        최신순
-      </button>
+    <div class="filter-wrapper" v-if="filterType !== 'my-posts'">
+      <SortFilter 
+        v-model="activeFilter" 
+        :options="sortOptions"
+      />
     </div>
 
     <!-- Grid -->
@@ -44,6 +34,7 @@ import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useFreeBoardStore } from '@/stores/freeboard';
 import FreeBoardListItem from './FreeBoardListItem.vue';
+import SortFilter from '@/components/common/SortFilter.vue';
 
 const props = defineProps({
   filterType: {
@@ -59,6 +50,11 @@ const props = defineProps({
 const router = useRouter();
 const store = useFreeBoardStore();
 const activeFilter = ref('popular');
+
+const sortOptions = [
+  { label: '인기순', value: 'popular' },
+  { label: '최신순', value: 'latest' }
+];
 
 const goToWrite = () => {
   router.push({ name: 'freeboard-write' });
@@ -102,27 +98,10 @@ const displayPosts = computed(() => {
   padding: 20px;
 }
 
-.filter-chips {
+.filter-wrapper {
   display: flex;
-  gap: 8px;
+  justify-content: flex-end;
   margin-bottom: 20px;
-}
-
-.chip {
-  padding: 8px 16px;
-  background: #f0f0f0;
-  border: none;
-  border-radius: 20px;
-  font-size: 14px;
-  color: #666;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.chip.active {
-  background: #87CEEB; /* Sky blue */
-  color: white;
-  font-weight: 600;
 }
 
 .post-grid {

@@ -43,6 +43,11 @@ const router = createRouter({
       component: PlaceDetailView
     },
     {
+      path: '/place/:id/reviews',
+      name: 'place-reviews',
+      component: () => import('@/views/attraction/PlaceReviewView.vue')
+    },
+    {
       path: '/login',
       name: 'login',
       component: () => import('@/views/auth/LoginView.vue')

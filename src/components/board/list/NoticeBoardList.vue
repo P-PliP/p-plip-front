@@ -1,7 +1,14 @@
 <template>
   <div class="notice-board-container">
+    <div class="filter-wrapper">
+      <SortFilter 
+        v-model="currentSort" 
+        :options="sortOptions" 
+      />
+    </div>
+
     <div class="notice-list">
-      <div v-for="notice in notices" :key="notice.id" class="notice-item" @click="goToDetail(notice.id)">
+      <div v-for="notice in sortedNotices" :key="notice.id" class="notice-item" @click="goToDetail(notice.id)">
         <div class="notice-tag">공지</div>
         <h3 class="notice-title">{{ notice.title }}</h3>
         <span class="notice-date">{{ notice.date }}</span>
@@ -11,10 +18,17 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
+import SortFilter from '@/components/common/SortFilter.vue';
 
 const router = useRouter();
+
+const currentSort = ref('desc');
+const sortOptions = [
+  { label: '최신순', value: 'desc' },
+  { label: '오래된순', value: 'asc' }
+];
 
 const notices = ref([
   { id: 1, title: 'P-PliP 서비스 점검 안내', date: '2025.12.01' },
@@ -24,6 +38,16 @@ const notices = ref([
   { id: 5, title: '11월 베스트 여행기 선정 결과', date: '2025.11.30' }
 ]);
 
+const sortedNotices = computed(() => {
+  const sorted = [...notices.value];
+  sorted.sort((a, b) => {
+    return currentSort.value === 'desc' 
+      ? b.date.localeCompare(a.date)
+      : a.date.localeCompare(b.date);
+  });
+  return sorted;
+});
+
 const goToDetail = (id) => {
   router.push({ name: 'noticeboard-detail', params: { id } });
 };
@@ -32,6 +56,12 @@ const goToDetail = (id) => {
 <style scoped>
 .notice-board-container {
   padding: 20px;
+}
+
+.filter-wrapper {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 12px;
 }
 
 .notice-list {
