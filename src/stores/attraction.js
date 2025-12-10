@@ -9,13 +9,17 @@ export const useAttractionStore = defineStore('attraction', () => {
         attractions.value.push(attraction);
     };
 
+    const setAttractions = (list) => {
+        attractions.value = list;
+    };
+
     const removeAttraction = (id) => {
         attractions.value = attractions.value.filter(attraction => attraction.id !== id);
     };
 
-    return { attractions, addAttraction, removeAttraction };
+    return { attractions, addAttraction, removeAttraction, setAttractions };
 },
-{
-    // persist: true
-}
+    {
+        // persist: true
+    }
 );
