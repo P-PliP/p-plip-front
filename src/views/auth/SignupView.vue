@@ -150,7 +150,7 @@ const sendCode = () => {
   })
   .catch(err => {
     console.error(err);
-    alert('인증코드 전송에 실패했습니다.');
+    alert(err.message);
   })
   .finally(() => {
     isSendingCode.value = false;

@@ -3,13 +3,18 @@
     <!-- Image Carousel -->
     <div class="image-carousel">
       <div class="carousel-track" @scroll="onScroll" @wheel="onWheel">
-        <div v-for="(img, index) in post.images" :key="index" class="carousel-item">
-          <img :src="img" alt="Post Image" class="post-image" />
+        <div v-for="(img, index) in post.freeBoardImages" :key="index" class="carousel-item">
+          <img :src="getImageUrl(img)" alt="Post Image" class="post-image" />
         </div>
       </div>
       <!-- Dots indicator if multiple images -->
-      <div v-if="post.images && post.images.length > 1" class="carousel-dots">
-        <div v-for="(img, index) in post.images" :key="index" class="dot" :class="{ active: index === 0 }"></div>
+      <div v-if="post.freeBoardImages && post.freeBoardImages.length > 1" class="carousel-dots">
+        <div 
+          v-for="(image, index) in post.freeBoardImages" 
+          :key="image.id" 
+          class="dot" 
+          :class="{ active: index === currentImageIndex }"
+        ></div>
       </div>
     </div>
 
@@ -21,16 +26,18 @@
     <!-- User Info -->
     <div class="user-info-bar">
       <div class="author-avatar" :style="{ backgroundColor: post.avatarColor || '#ccc' }">
-        <img v-if="post.avatarImage" :src="post.avatarImage" alt="Author" class="avatar-img">
-        <span v-else class="avatar-initial">{{ post.author ? post.author[0] : '?' }}</span>
+        <img :src="post.avatarImage || defaultAvatar" alt="Author" class="avatar-img">
       </div>
-      <span class="author-name">{{ post.author }}</span>
+      <span class="author-name">{{ post.authorName }}</span>
     </div>
 
     <!-- Content -->
     <div class="post-text-content">
       <p class="post-body">{{ post.content }}</p>
-      <p class="post-date">{{ formatTime(post.date) }}</p>
+      <p class="post-date" @click="toggleDateDisplay" style="cursor: pointer;">
+        {{ getDisplayDate(post.createdAt) }}
+      </p>
+      <p v-if="post.updatedAt" class="post-date">수정됨 {{ formatTime(post.updatedAt) }}</p>
     </div>
   </div>
 </template>
@@ -38,26 +45,48 @@
 <script setup>
 import { ref } from 'vue';
 import { useRelativeTime } from '@/composables/useRelativeTime';
+import defaultAvatar from '@/assets/default_avatar.png';
+import { useImage, useImages } from '@/composables/useImage';
 
 const { formatTime } = useRelativeTime();
+const { getImageUrl } = useImage();
 
-defineProps({
+const props = defineProps({
   post: {
     type: Object,
     required: true,
     default: () => ({
       title: '',
-      author: '',
-      avatarColor: '',
+      authorName: '',
       avatarImage: null,
       content: '',
-      date: '',
-      images: []
+      createdAt: '',
+      updatedAt: '',
+      freeBoardImages: []
     })
   }
 });
 
+
 const currentImageIndex = ref(0);
+let isScrolling = false;
+const showExactDate = ref(false);
+
+const toggleDateDisplay = () => {
+  showExactDate.value = !showExactDate.value;
+};
+
+const getDisplayDate = (date) => {
+  if (!date) return '';
+  if (showExactDate.value) {
+    const d = new Date(date);
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+  return formatTime(date);
+};
 
 const onScroll = (e) => {
   const scrollLeft = e.target.scrollLeft;
@@ -68,7 +97,25 @@ const onScroll = (e) => {
 const onWheel = (e) => {
   e.preventDefault();
   e.stopPropagation();
-  e.currentTarget.scrollLeft += e.deltaY;
+
+  if (isScrolling) return;
+  if (Math.abs(e.deltaY) < 10) return; // threshold
+
+  const container = e.currentTarget;
+  const width = container.clientWidth;
+  const maxIndex = (props.post.freeBoardImages || []).length - 1;
+
+  if (e.deltaY > 0 && currentImageIndex.value < maxIndex) {
+    // Next
+    isScrolling = true;
+    container.scrollTo({ left: (currentImageIndex.value + 1) * width, behavior: 'smooth' });
+    setTimeout(() => isScrolling = false, 500);
+  } else if (e.deltaY < 0 && currentImageIndex.value > 0) {
+    // Prev
+    isScrolling = true;
+    container.scrollTo({ left: (currentImageIndex.value - 1) * width, behavior: 'smooth' });
+    setTimeout(() => isScrolling = false, 500);
+  }
 };
 </script>
 
@@ -92,6 +139,7 @@ const onWheel = (e) => {
   scroll-snap-type: x mandatory;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
+  touch-action: pan-x;
 }
 
 .carousel-track::-webkit-scrollbar {

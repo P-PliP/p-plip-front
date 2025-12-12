@@ -30,9 +30,10 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useFreeBoardStore } from '@/stores/freeboard';
+import { boardApi } from '@/api/board';
 import FreeBoardListItem from './FreeBoardListItem.vue';
 import SortFilter from '@/components/common/SortFilter.vue';
 
@@ -50,10 +51,21 @@ const props = defineProps({
 const router = useRouter();
 const store = useFreeBoardStore();
 const activeFilter = ref('popular');
+const posts = ref([]);
+const pageInfo = ref({
+  pageNo: 1,
+  pageSize: 10,
+  totalCount: 0,
+  totalPage: 0,
+  startPage: 0,
+  endPage: 0,
+  prev: false,
+  next: false
+});
 
 const sortOptions = [
   { label: '인기순', value: 'popular' },
-  { label: '최신순', value: 'latest' }
+  { label: '최신순', value: 'fast' }
 ];
 
 const goToWrite = () => {
@@ -64,32 +76,89 @@ const goToDetail = (id) => {
 };
 
 const goToEdit = (id) => {
-  router.push({ name: 'freeboard-write', query: { id } });
+  router.push({ name: 'freeboard-modify', params: { id } });
 };
 
-const displayPosts = computed(() => {
-  // TODO: filterType이 my-posts일 때는 사용자 작성 게시판 리스트 api 사용, 아니면 게시판 리스트 api 사용
-  let filtered = [...store.freeBoards];
-  
+const fetchPosts = async () => {
   if (props.filterType === 'my-posts') {
-    filtered = filtered.filter(post => post.author === '탐험가 Alex');
-    
-    // Sort by date based on sortOrder prop
-    filtered.sort((a, b) => {
-      const dateA = new Date(a.date); // Assuming post has a date field
-      const dateB = new Date(b.date);
-      return props.sortOrder === 'desc' ? dateB - dateA : dateA - dateB;
-    });
-  } else {
-    // Existing filter logic for 'all'
-    if (activeFilter.value === 'latest') {
-      filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
-    } else if (activeFilter.value === 'popular') {
-      filtered.sort((a, b) => b.likes - a.likes);
+    // Map props.sortOrder ('desc'/'asc') to API values ('FAST'/'LATEST')
+    const apiSort = props.sortOrder === 'desc' ? 'FAST' : 'LATEST';
+    boardApi.getMyPostFreeBoardList(apiSort).then(res => {
+      if (res && res.list) {
+      // Merge: API list + Mock list
+      posts.value = [...res.list];
+      
+      // Store pagination info
+      pageInfo.value = {
+        pageNo: res.pageNo,
+        pageSize: res.pageSize,
+        totalCount: res.totalCount,
+        totalPage: res.totalPage,
+        startPage: res.startPage,
+        endPage: res.endPage,
+        prev: res.prev,
+        next: res.next
+      };
+    } else if (res.data) {
+       // Fallback for structure mismatch if interceptor changes
+       const list = res.data.content || res.data.data || [];
+       posts.value = [...list];
     }
+    }).catch(err => {
+      console.error(err);
+      alert(err.message);
+    });
+    return;
   }
-  
-  return filtered;
+
+  try {
+    const sortValue = activeFilter.value === 'popular' ? 'POPULAR' : 'FAST';
+    const res = await boardApi.getFreeBoardList(sortValue);
+    
+    // Response structure handling
+    if (res && res.list) {
+      // Merge: API list + Mock list
+      posts.value = [...res.list, ...store.freeBoards];
+      
+      // Store pagination info
+      pageInfo.value = {
+        pageNo: res.pageNo,
+        pageSize: res.pageSize,
+        totalCount: res.totalCount,
+        totalPage: res.totalPage,
+        startPage: res.startPage,
+        endPage: res.endPage,
+        prev: res.prev,
+        next: res.next
+      };
+    } else if (res.data) {
+       // Fallback for structure mismatch if interceptor changes
+       const list = res.data.content || res.data.data || [];
+       posts.value = [...list, ...store.freeBoards];
+    }
+  } catch (error) {
+    console.error('Error fetching board list:', error);
+    // Even on error, show mock data
+    posts.value = [...store.freeBoards];
+  }
+};
+
+onMounted(() => {
+  fetchPosts();
+});
+
+watch(activeFilter, () => {
+  fetchPosts();
+});
+
+watch(() => props.sortOrder, () => {
+  if (props.filterType === 'my-posts') {
+    fetchPosts();
+  }
+});
+
+const displayPosts = computed(() => {
+  return posts.value;
 });
 </script>
 

@@ -99,6 +99,11 @@ const router = createRouter({
       path: '/board/freeboard/write',
       name: 'freeboard-write',
       component: () => import('@/views/board/FreeBoardWriteView.vue')
+    },
+    {
+      path: '/board/freeboard/:id/modify',
+      name: 'freeboard-modify',
+      component: () => import('@/views/board/FreeBoardModifyView.vue')
     }
   ],
 })

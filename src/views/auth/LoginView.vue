@@ -46,6 +46,7 @@ const handleLogin = async () => {
   console.log('Login with:', email.value, password.value);
   userApi.login({ id: email.value, password: password.value })
   .then(res => {
+    console.log(res.accessToken);
     authStore.login( res.accessToken );
     router.push({ name: 'main' });
   }).catch(err => {
