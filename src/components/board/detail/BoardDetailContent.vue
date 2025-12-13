@@ -29,13 +29,35 @@
         <img :src="post.avatarImage || defaultAvatar" alt="Author" class="avatar-img">
       </div>
       <span class="author-name">{{ post.authorName }}</span>
+
+      <!-- Like Button -->
+      <div class="like-wrapper" @click="toggleLike" v-if="showLike">
+        <svg 
+            width="20" 
+            height="20" 
+            viewBox="0 0 24 24" 
+            fill="none" 
+            xmlns="http://www.w3.org/2000/svg"
+            class="like-icon"
+            :class="{ 'liked': isLiked }"
+        >
+          <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" 
+            :stroke="isLiked ? '#FF6B6B' : '#888'" 
+            :fill="isLiked ? '#FF6B6B' : 'none'"
+            stroke-width="2" 
+            stroke-linecap="round" 
+            stroke-linejoin="round"
+          />
+        </svg>
+        <span class="like-count" :class="{ 'liked-text': isLiked }">{{ likeCount }}</span>
+      </div>
     </div>
 
     <!-- Content -->
     <div class="post-text-content">
       <p class="post-body">{{ post.content }}</p>
       <p class="post-date" @click="toggleDateDisplay" style="cursor: pointer;">
-        {{ getDisplayDate(post.createdAt) }}
+        {{ getDisplayDate(post.createdAt || post.date) }} · 조회 {{ post.viewCnt || 0 }}
       </p>
       <p v-if="post.updatedAt" class="post-date">수정됨 {{ formatTime(post.updatedAt) }}</p>
     </div>
@@ -43,13 +65,18 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, watch, onMounted } from 'vue';
 import { useRelativeTime } from '@/composables/useRelativeTime';
 import defaultAvatar from '@/assets/default_avatar.png';
 import { useImage, useImages } from '@/composables/useImage';
+import { useAuthStore } from '@/stores/auth';
+import { boardApi } from '@/api/board';
+import { useRouter } from 'vue-router';
 
 const { formatTime } = useRelativeTime();
 const { getImageUrl } = useImage();
+const authStore = useAuthStore();
+const router = useRouter();
 
 const props = defineProps({
   post: {
@@ -62,10 +89,58 @@ const props = defineProps({
       content: '',
       createdAt: '',
       updatedAt: '',
-      freeBoardImages: []
+      freeBoardImages: [],
+      likeCnt: 0
     })
+  },
+  showLike: {
+    type: Boolean,
+    default: true
+  },
+  isLiked: {
+    type: Boolean,
+    default: false
   }
 });
+
+const isLiked = ref(props.isLiked);
+const likeCount = ref(0);
+
+// Watch for post changes to initialize likeCount
+watch(() => props.post, (newPost) => {
+    if (newPost) {
+        likeCount.value = newPost.likeCnt || 0;
+    }
+}, { immediate: true });
+
+// Watch for isLiked prop changes (from parent fetching)
+watch(() => props.isLiked, (newVal) => {
+    isLiked.value = newVal;
+});
+
+const toggleLike = async () => {
+    if (!authStore.isLoggedIn) {
+        if (confirm("로그인이 필요한 서비스입니다.\n로그인 페이지로 이동하시겠습니까?")) {
+             router.push(`/login?redirect=${encodeURIComponent(router.currentRoute.value.fullPath)}`);
+        }
+        return;
+    }
+
+    try {
+        if (isLiked.value) {
+            await boardApi.unlikeFreeBoard(props.post.id);
+            isLiked.value = false;
+            likeCount.value--;
+        } else {
+            await boardApi.likeFreeBoard(props.post.id);
+            isLiked.value = true;
+            likeCount.value++;
+        }
+    } catch (error) {
+        console.error("Like toggle failed:", error);
+        alert(error.message || "좋아요 처리에 실패했습니다.");
+    }
+};
 
 
 const currentImageIndex = ref(0);
@@ -255,4 +330,34 @@ const onWheel = (e) => {
   margin: 0;
   text-transform: uppercase;
 }
+
+.like-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 4px;
+  margin-left: 12px; /* Gap from name */
+}
+
+.like-icon {
+  transition: transform 0.2s, fill 0.2s;
+}
+
+.like-icon.liked {
+  transform: scale(1.1);
+}
+
+.like-count {
+  font-size: 10px;
+  color: #888;
+  margin-top: 2px;
+  font-weight: 500;
+}
+
+.like-count.liked-text {
+  color: #FF6B6B;
+}
+
 </style>

@@ -7,7 +7,7 @@
           <path d="M15 19L8 12L15 5" stroke="#333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </button>
-      <h2 class="header-title">게시글</h2>
+      <h2 class="header-title">게시판</h2>
       <div class="header-actions" v-if="post && post.author">
         <button class="action-btn edit-btn" @click="handleEdit">수정</button>
         <button class="action-btn delete-btn" @click="handleDelete">삭제</button>
@@ -15,10 +15,11 @@
       <div v-else class="header-spacer"></div>
     </div>
 
-    <div class="content-scroll" v-if="post">
-      <BoardDetailContent :post="post" />
+    <div class="content-scroll" v-if="post" @scroll="handleScroll">
+      <BoardDetailContent :post="post" :isLiked="isLiked" />
       <BoardDetailComment 
-        :comments="post.commentsList" 
+        :comments="commentList" 
+        :commentPageInfo="commentPageInfo"
         @add-comment="handleAddComment"
       />
     </div>
@@ -35,14 +36,50 @@ import BoardDetailContent from '@/components/board/detail/BoardDetailContent.vue
 import BoardDetailComment from '@/components/board/detail/BoardDetailComment.vue';
 import { boardApi } from '@/api/board';
 import { fileApi } from '@/api/file';
+import { useAuthStore } from '@/stores/auth';
 
 const route = useRoute();
 const router = useRouter();
 const post = ref(null);
 const boardId = ref(null);
+const commentList = ref([]);
+const commentPageInfo = ref({
+    pageNum: 1,
+    pageSize: 10,
+    totalCount: 0,
+    totalPage: 0,
+    startPage: 0,
+    endPage: 0,
+    prev: false,
+    next: false
+});
+const isCommentLoading = ref(false);
+const isLiked = ref(false);
 
 onMounted(() => {
   boardId.value = route.params.id;
+  getBoardDatas();
+  getBoardCommentDatas();
+  getLikeFreeBoard();
+});
+
+const getLikeFreeBoard = () => {
+  console.log(useAuthStore().isLoggedIn);
+  if (!useAuthStore().isLoggedIn) 
+    return;
+  boardApi.getLikeFreeBoard(boardId.value).then(res => {
+    isLiked.value = res.like;
+    console.log(res.like)
+  }).catch(err => {
+    console.error(err);
+    alert(err.message);
+    if (err.code === 201) {
+      router.back();
+    }
+  });
+}
+
+const getBoardDatas = () => {
   boardApi.getFreeBoardDetail(boardId.value).then(res => {
     post.value = res;
   }).catch(err => {
@@ -52,7 +89,43 @@ onMounted(() => {
       router.back();
     }
   });
-})
+}
+
+const getBoardCommentDatas = async () => {
+  try {
+      // if (commentPageInfo.value.pageNo > 1 && !commentPageInfo.value.next) {
+      //   console.log("더 이상 댓글이 없습니다.");
+      //   return;
+      // }
+      const res = await boardApi.getFreeBoardComments(boardId.value, { pageNum: commentPageInfo.value.pageNum });
+      
+      console.log(res);
+      // If it's the first page, replace; otherwise append
+      if (commentPageInfo.value.pageNum === 1) {
+          commentList.value = res.list;
+      } else {
+          commentList.value = [...commentList.value, ...res.list];
+      }
+      
+      commentPageInfo.value = {
+        pageNum: res.pageNum || res.pageNo,
+        pageSize: res.pageSize,
+        totalCount: res.totalCount,
+        totalPage: res.totalPage,
+        startPage: res.startPage,
+        endPage: res.endPage,
+        prev: res.prev,
+        next: res.next
+      };
+
+      console.log(commentPageInfo.value);
+  } catch (err) {
+    console.error(err);
+    alert(err.message);
+  } finally {
+    isCommentLoading.value = false;
+  }
+}
 
 const handleEdit = () => {
   router.push({ name: 'freeboard-modify', params: { id: boardId.value }});
@@ -74,13 +147,46 @@ const handleDelete = async () => {
   }
 };
 
-const handleAddComment = (text) => {
+const handleAddComment = async (text) => {
   const newComment = {
-    id: post.value.commentsList.length + 1,
-    author: '나', // Mock current user
-    text: text
+    content: text,
   };
-  post.value.commentsList.unshift(newComment);
+  
+  console.log(newComment);
+
+  try {
+    await boardApi.postFreeBoardComment(post.value.id, newComment);
+    
+    // Reset pagination to first page
+    commentPageInfo.value = {
+        pageNum: 1,
+        pageSize: 10,
+        totalCount: 0,
+        totalPage: 0,
+        startPage: 0,
+        endPage: 0,
+        prev: false,
+        next: false
+    };
+
+    // Fetch comments again
+    await getBoardCommentDatas();
+    console.log("called post");
+
+  } catch (error) {
+    console.log(error);
+    alert(error.message);
+  }
+};
+const handleScroll = (e) => {
+  const { scrollTop, clientHeight, scrollHeight } = e.target;
+  // Trigger when close to bottom (e.g., 50px threshold)
+  if (scrollTop + clientHeight >= scrollHeight - 50) {
+    if (commentPageInfo.value.next && !isCommentLoading.value) {
+        commentPageInfo.value.pageNum++;
+        getBoardCommentDatas();
+    }
+  }
 };
 </script>
 
@@ -110,12 +216,17 @@ const handleAddComment = (text) => {
   border: none;
   padding: 4px;
   cursor: pointer;
+  z-index: 1; /* ensure it's above title if overlap */
 }
 
 .header-title {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
   font-size: 16px;
   font-weight: 700;
   margin: 0;
+  white-space: nowrap;
 }
 
 .header-spacer {

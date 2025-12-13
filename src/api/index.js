@@ -1,5 +1,5 @@
 import axios from "axios";
-
+import { useAuthStore } from "@/stores/auth";
 
 const api = axios.create({
     baseURL: import.meta.env.VITE_BASE_URL,
@@ -12,9 +12,10 @@ const api = axios.create({
 
 api.interceptors.request.use(
     (config) => {
-        const token = localStorage.getItem('accessToken');
-        if (token) {
+        const token = useAuthStore().accessToken;
+        if (useAuthStore().isLoggedIn && token) {
             config.headers.Authorization = `Bearer ${token}`;
+            // console.log("token", token);
         }
         return config;
     },
@@ -35,31 +36,39 @@ api.interceptors.response.use(
         const res = response.data;
         const originalRequest = response.config; 
 
+        // console.log(originalRequest.headers.Authorization);
+        // console.log(res);
+      
         if (res.success) {
             return res.data;
         } 
-
-        if (res.code / 100 === 4 && !originalRequest._retry) {
+        
+        if (Math.floor(res.code / 100) === 4 && !originalRequest._retry) {
             if (isRefreshing) {
-                return new Promise((resolve, reject) => {
+                const retryRequest = new Promise((resolve, reject) => {
                     addRefreshSubscribers((token) => {
                         originalRequest.headers.Authorization = `Bearer ${token}`;
                         resolve(api(originalRequest));
                     });
                 });
+                return retryRequest;
             }
 
             originalRequest._retry = true;
             isRefreshing = true;
 
             try {
-                const {data} = await axios.post(`${import.meta.env.VITE_BASE_URL}/auth/refresh`, 
+                const res = await axios.post(`${import.meta.env.VITE_BASE_URL}/auth/refresh`, 
                     {}, 
                     {withCredentials: true}); // cookie에 값이 들어가 있음.
-                
+
+                const data = res.data.data;
+
                 localStorage.setItem('accessToken', data.accessToken);
                 api.defaults.headers.common['Authorization'] = `Bearer ${data.accessToken}`;
+                useAuthStore().login(data.accessToken);
 
+                // console.log("refreshed accessToken", data.accessToken);
                 refreshSubscribers.forEach(callback => callback(data.accessToken));
                 refreshSubscribers = [];
 
@@ -69,7 +78,7 @@ api.interceptors.response.use(
                 console.error("토큰 재발급 실패:", error);
                 localStorage.removeItem('accessToken');
 
-                window.location.href = '/login';
+                // window.location.href = '/login';
                 throw error;
             } finally {
                 isRefreshing = false;

@@ -133,7 +133,9 @@ const onFileSelect = (e) => {
 const onCrop = async (blob) => {
   try {
     const formData = new FormData();
-    formData.append('file', blob, 'image.png'); // Name is arbitrary if valid blob
+    console.log(blob);
+    const fileName = selectedFile.value?.name || 'image.png';
+    formData.append('file', blob, fileName);
 
     const res = await fileApi.uploadFile(formData, "FREE_BOARD").then(res => {
       console.log(res);
@@ -141,13 +143,12 @@ const onCrop = async (blob) => {
       const fileBaseUrl = import.meta.env.VITE_FILE_BASE_URL || '';
       // Ensure slash between base and path if needed. Assuming base doesn't end with slash or path doesn't start.
       // safely join:
-      const fullUrl = `${fileBaseUrl}/${fileData.path}`;
+      const fullUrl = `${fileBaseUrl}/${fileData.name}`;
       
       croppedImages.value.push({
         id: fileData.id,
         url: fullUrl,
-        path: fileData.path,
-        blob: blob // Optional keep blob if needed locally, but we rely on URL now
+        name: fileData.name,
       });
     });
   } catch (err) {

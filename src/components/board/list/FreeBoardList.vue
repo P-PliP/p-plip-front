@@ -33,6 +33,7 @@
 import { ref, computed, onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useFreeBoardStore } from '@/stores/freeboard';
+import { useAuthStore } from '@/stores/auth';
 import { boardApi } from '@/api/board';
 import FreeBoardListItem from './FreeBoardListItem.vue';
 import SortFilter from '@/components/common/SortFilter.vue';
@@ -50,6 +51,7 @@ const props = defineProps({
 
 const router = useRouter();
 const store = useFreeBoardStore();
+const authStore = useAuthStore();
 const activeFilter = ref('popular');
 const posts = ref([]);
 const pageInfo = ref({
@@ -69,6 +71,14 @@ const sortOptions = [
 ];
 
 const goToWrite = () => {
+  if (!authStore.isLoggedIn) {
+    alert("로그인이 필요합니다.");
+    router.push({ 
+      name: 'login', 
+      query: { redirect: router.currentRoute.value.fullPath } 
+    });
+    return;
+  }
   router.push({ name: 'freeboard-write' });
 };
 const goToDetail = (id) => {
@@ -118,7 +128,7 @@ const fetchPosts = async () => {
     // Response structure handling
     if (res && res.list) {
       // Merge: API list + Mock list
-      posts.value = [...res.list, ...store.freeBoards];
+      posts.value = [...res.list];
       
       // Store pagination info
       pageInfo.value = {
@@ -134,12 +144,12 @@ const fetchPosts = async () => {
     } else if (res.data) {
        // Fallback for structure mismatch if interceptor changes
        const list = res.data.content || res.data.data || [];
-       posts.value = [...list, ...store.freeBoards];
+       posts.value = [...list];
     }
   } catch (error) {
     console.error('Error fetching board list:', error);
     // Even on error, show mock data
-    posts.value = [...store.freeBoards];
+    posts.value = [];
   }
 };
 

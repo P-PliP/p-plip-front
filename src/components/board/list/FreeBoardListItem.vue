@@ -3,7 +3,7 @@
     class="post-card"
     @click="$emit('click')"
   >
-    <div class="card-image" :style="{ backgroundImage: `url(${post.image})` }">
+    <div class="card-image" :style="{ backgroundImage: `url(${getImageUrl(post.freeBoardImage)})` }">
     </div>
     <div class="card-content">
       <h3 class="post-title">{{ post.title }}</h3>
@@ -20,6 +20,15 @@
           <div class="meta-item date-item">
             <span>{{ formatTime(post.updatedAt || post.createdAt) }}</span>
             <span v-if="post.updatedAt">수정됨</span>
+          </div>
+          <div class="meta-item">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M15 12C15 13.6569 13.6569 15 12 15C10.3431 15 9 13.6569 9 12C9 10.3431 10.3431 9 12 9C13.6569 9 15 10.3431 15 12Z" stroke="#888" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M12 21C16.9706 21 21 16.9706 21 12C21 7.02944 16.9706 3 12 3C7.02944 3 3 7.02944 3 12C3 16.9706 7.02944 21 12 21Z" stroke="#888" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/> 
+              <path d="M2.45825 12C3.73253 7.94294 7.52281 5 12.0002 5C16.4776 5 20.2679 7.94294 21.5422 12C20.2679 16.0571 16.4776 19 12.0002 19C7.52281 19 3.73253 16.0571 2.45825 12Z" stroke="#888" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z" fill="#888"/>
+            </svg>
+            <span>{{ post.viewCnt || 0 }}</span>
           </div>
           <div class="meta-item">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -44,10 +53,13 @@
 
 <script setup>
 import { useRelativeTime } from '@/composables/useRelativeTime';
+import { useImage } from '@/composables/useImage';
+import { onMounted } from 'vue';
 
 const { formatTime } = useRelativeTime();
+const { getImageUrl } = useImage();
 
-defineProps({
+const props = defineProps({
   post: {
     type: Object,
     required: true
@@ -59,6 +71,7 @@ defineProps({
 });
 
 defineEmits(['click', 'edit']);
+
 </script>
 
 <style scoped>

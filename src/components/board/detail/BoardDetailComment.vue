@@ -3,21 +3,22 @@
     <div class="section-divider"></div>
     <div class="comments-header-bar">
       <span class="comments-label">댓글</span>
-      <span class="comments-count">{{ comments ? comments.length : 0 }}</span>
+      <span class="comments-count">{{ commentPageInfo.totalCount }}</span>
     </div>
 
     <!-- Comment Input Section -->
-    <div class="comment-input-section">
+    <div class="comment-input-section" v-if="authStore.isLoggedIn">
       <div class="current-user-avatar">
         <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&q=80" alt="Me" class="avatar-img">
       </div>
       <div class="input-wrapper">
         <input 
-          v-model="newComment" 
+          :value="newComment"
+          @input="newComment = $event.target.value"
           type="text" 
           placeholder="댓글을 입력하세요..." 
           class="comment-input"
-          @keyup.enter="submitComment"
+          @keydown.enter.prevent="submitComment"
         />
         <button 
           class="comment-submit-btn" 
@@ -32,14 +33,18 @@
     <div class="comments-section">
       <div v-for="comment in comments" :key="comment.id" class="comment-item">
         <div class="comment-avatar">
-          {{ comment.author ? comment.author[0] : '?' }}
+          <img 
+            :src="comment.profileImage ? getImageUrl(comment.profileImage) : defaultImage" 
+            alt="User" 
+            class="avatar-img"
+          >
         </div>
         <div class="comment-content">
           <div class="comment-header">
-            <span class="comment-author">{{ comment.author }}</span>
+            <span class="comment-author">{{ comment.authorNickName }}</span>
             <span class="comment-date">2시간 전</span>
           </div>
-          <p class="comment-text">{{ comment.text }}</p>
+          <p class="comment-text">{{ comment.content }}</p>
         </div>
       </div>
     </div>
@@ -48,19 +53,32 @@
 
 <script setup>
 import { ref } from 'vue';
+import { useAuthStore } from '@/stores/auth';
+import { useImage } from '@/composables/useImage';
+import { useDefaultImage } from '@/composables/useDefaultImage';
+
+const authStore = useAuthStore();
+const { getImageUrl } = useImage();
+const defaultImage = useDefaultImage();
 
 const props = defineProps({
   comments: {
     type: Array,
     required: true,
     default: () => []
+  },
+  commentPageInfo: {
+    type: Object,
+    required: true,
+    default: () => ({})
   }
 });
 
 const emit = defineEmits(['add-comment']);
 const newComment = ref('');
 
-const submitComment = () => {
+const submitComment = (e) => {
+  if (e && e.isComposing) return;
   if (!newComment.value.trim()) return;
   
   emit('add-comment', newComment.value);
@@ -183,6 +201,7 @@ const submitComment = () => {
   font-weight: 600;
   color: #555;
   flex-shrink: 0;
+  overflow: hidden;
 }
 
 .comment-content {

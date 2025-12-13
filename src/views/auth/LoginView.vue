@@ -28,11 +28,12 @@
 
 <script setup>
 import { ref } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 import { userApi } from '@/api/user';
 import { useAuthStore } from '@/stores/auth';
 
 const router = useRouter();
+const route = useRoute();
 const authStore = useAuthStore();
 const email = ref('');
 const password = ref('');
@@ -48,7 +49,12 @@ const handleLogin = async () => {
   .then(res => {
     console.log(res.accessToken);
     authStore.login( res.accessToken );
-    router.push({ name: 'main' });
+    
+    if (route.query.redirect) {
+      router.push(route.query.redirect);
+    } else {
+      router.push({ name: 'main' });
+    }
   }).catch(err => {
     console.error(err);
   });
