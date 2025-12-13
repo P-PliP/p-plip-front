@@ -7,60 +7,187 @@
           <path d="M15 19L8 12L15 5" stroke="#333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </button>
-      <h2 class="header-title">게시글</h2>
-      <div class="header-spacer"></div>
+      <h2 class="header-title">게시판</h2>
+      <div class="header-actions" v-if="post && post.author">
+        <button class="action-btn edit-btn" @click="handleEdit">수정</button>
+        <button class="action-btn delete-btn" @click="handleDelete">삭제</button>
+      </div>
+      <div v-else class="header-spacer"></div>
     </div>
 
-    <div class="content-scroll">
-      <BoardDetailContent :post="post" />
+    <div class="content-scroll" v-if="post" @scroll="handleScroll">
+      <BoardDetailContent :post="post" :isLiked="isLiked" />
       <BoardDetailComment 
-        :comments="post.commentsList" 
+        :comments="commentList" 
+        :commentPageInfo="commentPageInfo"
         @add-comment="handleAddComment"
       />
+    </div>
+    <div v-else class="loading-container">
+      <div class="spinner"></div>
     </div>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import BoardDetailContent from '@/components/board/detail/BoardDetailContent.vue';
 import BoardDetailComment from '@/components/board/detail/BoardDetailComment.vue';
+import { boardApi } from '@/api/board';
+import { fileApi } from '@/api/file';
+import { useAuthStore } from '@/stores/auth';
 
 const route = useRoute();
-const post = ref({
-  id: 1,
-  title: '갑자기 떠난 강릉 바다 후기',
-  author: '바다여행자',
-  avatarColor: '#E0C3A5',
-  likes: 128,
-  content: '갑자기 바다가 보고 싶어서 떠난 강릉 여행! 날씨도 너무 좋고 바다 색깔도 너무 예뻤어요. 맛있는 커피도 마시고 힐링 제대로 하고 왔습니다. 다음에는 친구들이랑 같이 오고 싶네요.',
-  date: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(), // 2 hours ago
-  images: [
-    'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-    'https://images.unsplash.com/photo-1519046904884-53103b34b271?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'
-  ],
-  commentsList: [
-    { id: 1, author: '여행조아', text: '우와 바다 색깔 진짜 예쁘네요!' },
-    { id: 2, author: '강릉토박이', text: '안목해변인가요? 커피거리 좋죠 ㅎㅎ' },
-    { id: 3, author: '떠나고싶다', text: '저도 가고 싶어요 ㅠㅠ 부럽습니다' }
-  ]
+const router = useRouter();
+const post = ref(null);
+const boardId = ref(null);
+const commentList = ref([]);
+const commentPageInfo = ref({
+    pageNum: 1,
+    pageSize: 10,
+    totalCount: 0,
+    totalPage: 0,
+    startPage: 0,
+    endPage: 0,
+    prev: false,
+    next: false
+});
+const isCommentLoading = ref(false);
+const isLiked = ref(false);
+
+onMounted(() => {
+  boardId.value = route.params.id;
+  getBoardDatas();
+  getBoardCommentDatas();
+  getLikeFreeBoard();
 });
 
-const handleAddComment = (text) => {
-  const newComment = {
-    id: post.value.commentsList.length + 1,
-    author: '나', // Mock current user
-    text: text
-  };
-  post.value.commentsList.unshift(newComment);
+const getLikeFreeBoard = () => {
+  console.log(useAuthStore().isLoggedIn);
+  if (!useAuthStore().isLoggedIn) 
+    return;
+  boardApi.getLikeFreeBoard(boardId.value).then(res => {
+    isLiked.value = res.like;
+    console.log(res.like)
+  }).catch(err => {
+    console.error(err);
+    alert(err.message);
+    if (err.code === 201) {
+      router.back();
+    }
+  });
+}
+
+const getBoardDatas = () => {
+  boardApi.getFreeBoardDetail(boardId.value).then(res => {
+    post.value = res;
+  }).catch(err => {
+    console.error(err);
+    alert(err.message);
+    if (err.code === 201) {
+      router.back();
+    }
+  });
+}
+
+const getBoardCommentDatas = async () => {
+  try {
+      // if (commentPageInfo.value.pageNo > 1 && !commentPageInfo.value.next) {
+      //   console.log("더 이상 댓글이 없습니다.");
+      //   return;
+      // }
+      const res = await boardApi.getFreeBoardComments(boardId.value, { pageNum: commentPageInfo.value.pageNum });
+      
+      console.log(res);
+      // If it's the first page, replace; otherwise append
+      if (commentPageInfo.value.pageNum === 1) {
+          commentList.value = res.list;
+      } else {
+          commentList.value = [...commentList.value, ...res.list];
+      }
+      
+      commentPageInfo.value = {
+        pageNum: res.pageNum || res.pageNo,
+        pageSize: res.pageSize,
+        totalCount: res.totalCount,
+        totalPage: res.totalPage,
+        startPage: res.startPage,
+        endPage: res.endPage,
+        prev: res.prev,
+        next: res.next
+      };
+
+      console.log(commentPageInfo.value);
+  } catch (err) {
+    console.error(err);
+    alert(err.message);
+  } finally {
+    isCommentLoading.value = false;
+  }
+}
+
+const handleEdit = () => {
+  router.push({ name: 'freeboard-modify', params: { id: boardId.value }});
 };
 
-// In a real app, fetch post details using route.params.id
-onMounted(() => {
-  console.log('Fetching post', route.params.id);
-  // Mock data fetching logic here if needed
-});
+const handleDelete = async () => {
+  if(!confirm("정말로 삭제하시겠습니까?")) return;
+  try {
+    console.log(post.value.id);
+    await boardApi.deleteFreeBoard(post.value.id);
+    post.value.freeBoardImages.forEach(async (img) => {
+      await fileApi.deleteFile(img.id, "FREE_BOARD");
+    })
+    alert("성공적으로 삭제되었습니다.");
+    router.back();
+  } catch (e) {
+    console.log(e);
+    alert("삭제 실패");
+  }
+};
+
+const handleAddComment = async (text) => {
+  const newComment = {
+    content: text,
+  };
+  
+  console.log(newComment);
+
+  try {
+    await boardApi.postFreeBoardComment(post.value.id, newComment);
+    
+    // Reset pagination to first page
+    commentPageInfo.value = {
+        pageNum: 1,
+        pageSize: 10,
+        totalCount: 0,
+        totalPage: 0,
+        startPage: 0,
+        endPage: 0,
+        prev: false,
+        next: false
+    };
+
+    // Fetch comments again
+    await getBoardCommentDatas();
+    console.log("called post");
+
+  } catch (error) {
+    console.log(error);
+    alert(error.message);
+  }
+};
+const handleScroll = (e) => {
+  const { scrollTop, clientHeight, scrollHeight } = e.target;
+  // Trigger when close to bottom (e.g., 50px threshold)
+  if (scrollTop + clientHeight >= scrollHeight - 50) {
+    if (commentPageInfo.value.next && !isCommentLoading.value) {
+        commentPageInfo.value.pageNum++;
+        getBoardCommentDatas();
+    }
+  }
+};
 </script>
 
 <style scoped>
@@ -89,16 +216,44 @@ onMounted(() => {
   border: none;
   padding: 4px;
   cursor: pointer;
+  z-index: 1; /* ensure it's above title if overlap */
 }
 
 .header-title {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
   font-size: 16px;
   font-weight: 700;
   margin: 0;
+  white-space: nowrap;
 }
 
 .header-spacer {
   width: 32px; /* Balance back button */
+}
+
+.header-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.action-btn {
+  background: none;
+  border: none;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.edit-btn {
+  color: #0095f6;
+}
+
+.delete-btn {
+  color: #ff3b30;
 }
 
 .content-scroll {
@@ -107,5 +262,26 @@ onMounted(() => {
   padding-bottom: 40px;
   touch-action: pan-y; /* Allow vertical scrolling */
   overscroll-behavior: contain;
+}
+
+.loading-container {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #3498db;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 </style>

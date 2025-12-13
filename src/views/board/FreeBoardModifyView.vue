@@ -7,8 +7,8 @@
           <path d="M15 19L8 12L15 5" stroke="#333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </button>
-      <h2 class="header-title">글 쓰기</h2>
-      <button class="submit-btn" @click="submitPost" :disabled="!isValid">완료</button>
+      <h2 class="header-title">글 수정</h2>
+      <button class="submit-btn" @click="submitPost" :disabled="!isValid">수정</button>
     </div>
 
     <div class="content-scroll">
@@ -26,7 +26,7 @@
             @dragenter.prevent="onDragEnter(index)"
             @drop="onDrop(index)"
           >
-            <img :src="img.url" alt="Preview" class="preview-img" />
+            <img :src="img.url || getImageUrl(img.name)" alt="Preview" class="preview-img" />
             <button class="remove-btn" @click="removeImage(index)">×</button>
           </div>
           
@@ -80,21 +80,50 @@ import ImageCropper from '@/components/common/ImageCropper.vue';
 import { useFreeBoardStore } from '@/stores/freeboard';
 import { boardApi } from '@/api/board';
 import { fileApi } from '@/api/file';
+import { useImage } from '@/composables/useImage';
 
-import { useAuthStore } from '@/stores/auth';
-
-const authStore = useAuthStore();
-
+const { getImageUrl } = useImage();
+ 
 const router = useRouter();
 const route = useRoute();
 const store = useFreeBoardStore();
+const addedImgs = ref([]);
 
+const isEditMode = ref(true);
 const title = ref('');
 const content = ref('');
 const croppedImages = ref([]); // Array of { blob, url }
 const draggedIndex = ref(null);
-const isEditMode = ref(false);
 const editId = ref(null);
+
+onMounted(() => {
+  if (route.params.id) {
+    editId.value = parseInt(route.params.id);
+    boardApi.getFreeBoardDetail(editId.value).then(res => {
+      console.log(res);
+      title.value = res.title;
+      content.value = res.content || res.title; 
+      if (res.freeBoardImages) {
+        res.freeBoardImages.forEach(img => {
+          croppedImages.value.push({
+            id: img.id,
+            url: img.url,
+            name: img.name, 
+            status: 'EXISTING'});
+        });
+      }
+    }).catch((err) => {
+      console.log(err);
+      alert(err.message);
+      router.back();
+    })
+    
+  } else {
+    // If no ID is provided, perhaps redirect back or show error
+    alert("수정할 게시글 정보가 없습니다.");
+    router.back();
+  }
+});
 
 const onDragStart = (index) => {
   draggedIndex.value = index;
@@ -102,7 +131,6 @@ const onDragStart = (index) => {
 
 const onDragEnter = (index) => {
   if (draggedIndex.value !== null && draggedIndex.value !== index) {
-    // Swap logic for smoother feel (optional, but good for reordering)
     const item = croppedImages.value.splice(draggedIndex.value, 1)[0];
     croppedImages.value.splice(index, 0, item);
     draggedIndex.value = index;
@@ -126,7 +154,6 @@ const onFileSelect = (e) => {
     selectedFile.value = file;
     showCropper.value = true;
   }
-  // Reset input
   e.target.value = '';
 };
 
@@ -150,6 +177,7 @@ const onCrop = async (blob) => {
         url: fullUrl,
         name: fileData.name,
       });
+      addedImgs.value.push({id: fileData.id, status: 'NEW'});
     });
   } catch (err) {
     console.error(err);
@@ -165,28 +193,23 @@ const cancelCrop = () => {
   selectedFile.value = null;
 };
 
-const removeImage = async (index) => {
-  const image = croppedImages.value[index];
-  if (image.id) {
-    try {
-      await fileApi.deleteFile(image.id, "FREE_BOARD");
-    } catch (err) {
-      console.error(err);
-      // alert('이미지 삭제 실패'); // Optional: show alert or just remove locally
-    }
+const removeImage = (index) => {
+  if (croppedImages.value[index]) {
+    croppedImages.value[index].status = 'REMOVE';
   }
   croppedImages.value.splice(index, 1);
 };
 
 const submitPost = async () => {
-  const postData = {
+  const updateData = {
     title: title.value,
     content: content.value,
-    ids: croppedImages.value.map(img => img.id),
+    images: croppedImages.value,
   };
 
   try {
     let res;
+    console.log(updateData);
     if (isEditMode.value) {
         // user didn't specify edit logic update, but assuming similar structure or keep store for edit?
         // User request was specific about "postFreeBoard". 
@@ -200,7 +223,7 @@ const submitPost = async () => {
         // But `isEditMode` logic is still in the file I read.
         // I will implement standard create logic here.
         
-        res = await boardApi.postFreeBoard(postData);
+        res = await boardApi.updateFreeBoard(editId.value, updateData);
     } else {
         res = await boardApi.postFreeBoard(postData);
     }
@@ -210,7 +233,7 @@ const submitPost = async () => {
       router.replace({ name: 'freeboard-detail', params: { id: newPostId } });
   } catch (err) {
     console.error(err);
-    alert('게시글 작성에 실패했습니다.');
+    alert('게시글 수정에 실패했습니다.');
   }
 };
 </script>
@@ -221,7 +244,7 @@ const submitPost = async () => {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  touch-action: none; /* Prevent whole page drag */
+  touch-action: none;
 }
 
 .write-header {
@@ -267,7 +290,7 @@ const submitPost = async () => {
   flex: 1;
   overflow-y: auto;
   padding: 16px;
-  touch-action: pan-y; /* Allow vertical scrolling */
+  touch-action: pan-y;
   overscroll-behavior: contain;
 }
 
@@ -281,7 +304,7 @@ const submitPost = async () => {
   overflow-x: auto;
   padding-bottom: 8px;
   padding-top: 8px;
-  touch-action: pan-x pan-y; /* Allow horizontal scroll and vertical page scroll */
+  touch-action: pan-x pan-y;
 }
 
 .preview-item {

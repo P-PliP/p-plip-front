@@ -63,6 +63,13 @@ watch(() => [props.contentType, props.searchQuery, props.searchRadius], () => {
   fetchAttractions(true, true); // Reset and Center
 }, { deep: true });
 
+// Auto-fit bounds when markerList changes
+watch(() => markerList.value, (newMarkers) => {
+    if (newMarkers && newMarkers.length > 0) {
+        fitBoundsToMarkers(newMarkers);
+    }
+}, { deep: true });
+
 const userLocation = ref({ lat: 33.450701, lng: 126.570667 });
 
 const onLoadKakaoMap = (map) => {
@@ -154,17 +161,11 @@ const fetchAttractions = (isReset = true, shouldCenter = false) => {
     const currentCenter = mapRef.value.getCenter();
     sortMarkers(currentCenter.getLat(), currentCenter.getLng());
 
-    // Center map on the nearest result if requested
-    if (shouldCenter && markerList.value.length > 0) {
-      const nearest = markerList.value[0];
-      moveToLocation(nearest.latitude, nearest.longitude);
-    }
-
     // sortMarkers already emits update-places, but we might need it before moving?
     // sortMarkers emits. So we don't need explicit emit here, or we can leave it?
     // Let's rely on sortMarkers to emit.
   }).catch(error => {
-    console.error(error);
+    console.error('api error', error);
   }).finally(() => {
     isLoading.value = false;
     emit('update-loading', false);
@@ -208,6 +209,17 @@ const loadMore = () => {
 
 const initialLevel = ref(3);
 
+const fitBoundsToMarkers = (markers) => {
+    if (!mapRef.value || !window.kakao || !window.kakao.maps || markers.length === 0) return;
+
+    const bounds = new window.kakao.maps.LatLngBounds();
+    markers.forEach(marker => {
+        bounds.extend(new window.kakao.maps.LatLng(marker.latitude, marker.longitude));
+    });
+
+    mapRef.value.setBounds(bounds);
+};
+
 const moveToLocation = (lat, lng, zoomLevel = null) => {
   if (mapRef.value && window.kakao && window.kakao.maps) {
     const moveLatLon = new window.kakao.maps.LatLng(lat, lng);
@@ -237,9 +249,6 @@ defineExpose({
   setMarkers: (list) => {
     markerList.value = list;
     emit('update-places', [...markerList.value]);
-    if (list.length > 0) {
-        moveToLocation(list[0].latitude, list[0].longitude);
-    }
   }
 });
 

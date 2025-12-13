@@ -11,7 +11,7 @@
       <div v-for="notice in sortedNotices" :key="notice.id" class="notice-item" @click="goToDetail(notice.id)">
         <div class="notice-tag">공지</div>
         <h3 class="notice-title">{{ notice.title }}</h3>
-        <span class="notice-date">{{ notice.date }}</span>
+        <span class="notice-date">{{ notice.date }} · 조회 {{ notice.viewCnt || 0 }}</span>
       </div>
     </div>
   </div>
@@ -31,11 +31,11 @@ const sortOptions = [
 ];
 
 const notices = ref([
-  { id: 1, title: 'P-PliP 서비스 점검 안내', date: '2025.12.01' },
-  { id: 2, title: '개인정보 처리방침 변경 안내', date: '2025.11.20' },
-  { id: 3, title: '새로운 기능 업데이트: AI 여행 비서', date: '2025.11.15' },
-  { id: 4, title: '커뮤니티 이용 수칙 안내', date: '2025.11.01' },
-  { id: 5, title: '11월 베스트 여행기 선정 결과', date: '2025.11.30' }
+  { id: 1, title: 'P-PliP 서비스 점검 안내', date: '2025.12.01', viewCnt: 1205 },
+  { id: 2, title: '개인정보 처리방침 변경 안내', date: '2025.11.20', viewCnt: 854 },
+  { id: 3, title: '새로운 기능 업데이트: AI 여행 비서', date: '2025.11.15', viewCnt: 2100 },
+  { id: 4, title: '커뮤니티 이용 수칙 안내', date: '2025.11.01', viewCnt: 3421 },
+  { id: 5, title: '11월 베스트 여행기 선정 결과', date: '2025.11.30', viewCnt: 1540 }
 ]);
 
 const sortedNotices = computed(() => {

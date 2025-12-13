@@ -12,7 +12,7 @@
     </div>
 
     <div class="content-scroll">
-      <BoardDetailContent :post="post" />
+      <BoardDetailContent :post="post" :show-like="false" />
       <BoardDetailComment 
         :comments="post.commentsList" 
         @add-comment="handleAddComment"
@@ -36,6 +36,7 @@ const post = ref({
   likes: 54,
   content: '안녕하세요, P-PliP 팀입니다. 더 나은 서비스를 위해 서버 점검이 진행될 예정입니다. 이용에 불편을 드려 죄송합니다.',
   date: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2).toISOString(), // 2 days ago
+  viewCnt: 1205,
   images: [
     'https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'
   ],

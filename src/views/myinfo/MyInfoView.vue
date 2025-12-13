@@ -30,7 +30,7 @@
       <div class="menu-section" style="margin-bottom: 30px;">
         <h3 class="section-title">더보기</h3>
         <ul class="menu-list">
-          <li class="menu-item" @click="$router.push({ name: 'my-posts' })">
+          <li class="menu-item" @click="handleMyPosts">
             <div class="menu-icon">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M11 4H4V20H20V14" stroke="#666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -42,7 +42,7 @@
               <path d="M9 18L15 12L9 6" stroke="#ccc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
           </li>
-          <li class="menu-item" @click="$router.push({ name: 'profile-edit' })">
+          <li class="menu-item" @click="handleProfileEdit">
             <div class="menu-icon">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M20 21V19C20 17.9391 19.5786 16.9217 18.8284 16.1716C18.0783 15.4214 17.0609 15 16 15H8C6.93913 15 5.92172 15.4214 5.17157 16.1716C4.42143 16.9217 4 17.9391 4 19V21" stroke="#666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -101,9 +101,35 @@ import { useAuthStore } from '@/stores/auth';
 
 import NavBar from '@/components/common/Navbar.vue';
 import ChatModal from '@/components/common/ChatModal.vue';
+import { useRoute } from 'vue-router'; // Although router is used, route might be needed for current path if not using router.currentRoute
 
 const router = useRouter();
+const route = useRoute(); // ensuring we have route
 const authStore = useAuthStore();
+
+const handleMyPosts = () => {
+  if (!authStore.isLoggedIn) {
+     alert("로그인이 필요합니다.");
+     router.push({ 
+       name: 'login', 
+       query: { redirect: router.currentRoute.value.fullPath } 
+     });
+     return;
+  }
+  router.push({ name: 'my-posts' });
+};
+
+const handleProfileEdit = () => {
+  if (!authStore.isLoggedIn) {
+     alert("로그인이 필요합니다.");
+     router.push({ 
+       name: 'login', 
+       query: { redirect: router.currentRoute.value.fullPath } 
+     });
+     return;
+  }
+  router.push({ name: 'profile-edit' });
+};
 
 const goToSignup = () => {
   console.log('Navigate to signup');

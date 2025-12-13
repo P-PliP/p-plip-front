@@ -14,4 +14,6 @@ export const attractionApi = {
   }),
   getAttractionsBySuggestion: () => api.get("/trip/attraction/ai"),
   getAttractionById: (id) => api.get(`/trip/attraction/${id}`),
+  getRegions: () => api.get("/trip/attraction/region"),
+  getAttractionsByRegion: (data) => api.get(`/trip/attraction/suggest/sido-guguns`, {params: data}),
 };

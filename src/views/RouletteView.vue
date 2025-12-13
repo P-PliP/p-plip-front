@@ -5,19 +5,51 @@
       <p class="subtitle">{{ subtitleText }}</p>
     </header>
 
-    <div class="roulette-wrapper">
-      <div class="wheel-container">
-        <canvas ref="canvas" width="300" height="300"></canvas>
-        <div class="wheel-pointer"></div>
+    <div class="content-wrapper">
+      <!-- Grid View (Initial State) -->
+      <div v-if="!isSpinning" class="grid-container">
+        <div 
+          v-for="(item, index) in currentItems" 
+          :key="index" 
+          class="grid-item"
+          :style="{ borderColor: colors[index % colors.length] }"
+        >
+          {{ item }}
+        </div>
+      </div>
+
+      <!-- Roulette View (Spinning State) -->
+      <div v-else class="roulette-window">
+        <!-- Center Indicator -->
+        <div class="indicator"></div>
+        
+        <div 
+          class="roulette-strip" 
+          :style="{ transform: `translateX(${-currentOffset}px)` }"
+        >
+          <div 
+            v-for="(item, index) in rouletteItems" 
+            :key="index" 
+            class="roulette-item"
+            :class="{ 'active': index === targetIndex && isFinished }"
+            :style="{ 
+              backgroundColor: colors[index % colors.length],
+            }"
+          >
+            {{ item }}
+          </div>
+        </div>
       </div>
       
-      <button 
-        class="spin-btn" 
-        @click="handleSpinClick" 
-        :disabled="isSpinning"
-      >
-        {{ spinButtonText }}
-      </button>
+      <div class="action-area">
+        <button 
+          class="spin-btn" 
+          @click="handleSpinClick" 
+          :disabled="isSpinning"
+        >
+          {{ spinButtonText }}
+        </button>
+      </div>
     </div>
 
     <!-- Result Modal (Final) -->
@@ -48,8 +80,6 @@
       </div>
     </div>
 
-    <!-- Intermediate Result Toast/Modal (Optional, using header update for now but alert for clarity) -->
-    
     <!-- Bottom Navigation -->
     <div class="bottom-nav">
       <NavBar />
@@ -60,46 +90,101 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue';
 import NavBar from '@/components/common/Navbar.vue';
+import { attractionApi } from '@/api/attraction';
 
-// Data
-const regionData = {
-  '서울': ['강남구', '홍대/신촌', '종로/인사동', '이태원', '잠실', '여의도', '성수동'],
-  '경기': ['수원', '용인', '가평', '양평', '파주', '성남', '고양'],
-  '부산': ['해운대', '광안리', '남포동', '서면', '기장', '영도'],
-  '제주': ['제주시', '서귀포시', '애월', '함덕', '성산', '중문'],
-  '인천': ['송도', '차이나타운', '월미도', '강화도', '부평'],
-  '강원': ['강릉', '속초', '양양', '춘천', '평창', '원주'],
-  '경북': ['경주', '포항', '안동', '구미', '울릉도', '영주'],
-  '전남': ['여수', '순천', '목포', '담양', '보성'],
-  '전북': ['전주', '군산', '남원', '익산', '부안'],
-  '충남': ['천안', '공주', '보령', '태안', '부여'],
-  '충북': ['청주', '충주', '제천', '단양'],
-  '경남': ['창원', '통영', '거제', '진주', '남해'],
-  '대구': ['동성로', '수성못', '김광석거리', '앞산'],
-  '대전': ['은행동', '둔산동', '유성온천', '대청호'],
-  '광주': ['충장로', '무등산', '양림동'],
-  '울산': ['간절곶', '대왕암', '태화강'],
-  '세종': ['세종시'] 
-};
+// Data placeholders
+const regionData = ref({});
+const sidoCodeMap = ref({});
+const gugunCodeMap = ref({});
 
-const provinces = Object.keys(regionData);
-const singleStepRegions = ['서울', '부산', '대구', '인천', '광주', '대전', '울산', '세종'];
+// Codes for regions that stop at Step 1 (Major Cities/Special Provinces)
+const singleStepRegionCodes = [1, 2, 3, 4, 5, 6, 7, 8, 39];
+
 const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEEAD', '#FFCC5C', '#FF9671', '#D4A5A5', '#9B59B6', '#3498DB', '#E67E22', '#2ECC71', '#F1C40F', '#E74C3C', '#1ABC9C', '#8E44AD', '#2C3E50'];
 
 // State
 const step = ref(1); // 1: Province, 2: District
-const canvas = ref(null);
 const isSpinning = ref(false);
 const showFinalModal = ref(false);
+const isFinished = ref(false);
 
 const selectedProvince = ref('');
 const selectedDistrict = ref('');
-const currentRotation = ref(0);
+
+// Roulette Animation State
+const itemWidth = 100; // Width of each box in px
+const itemGap = 10;    // Gap between boxes in px
+const rouletteItems = ref([]);
+const currentOffset = ref(0);
+const targetIndex = ref(0);
+
+const selectedSidoCode = ref(null);
+const selectedGugunCode = ref(null);
+
+const fetchRegions = async () => {
+  try {
+    const res = await attractionApi.getRegions();
+    
+    // 2-char Name Mapping
+    const sidoMap = {
+      '세종특별자치시': '세종',
+      '제주특별자치도': '제주',
+      '강원특별자치도': '강원',
+      '전북특별자치도': '전북',
+      '경기도': '경기',
+      '충청북도': '충북',
+      '충청남도': '충남',
+      '경상북도': '경북',
+      '경상남도': '경남',
+      '전라북도': '전북',
+      '전라남도': '전남',
+      '제주도': '제주'
+    };
+
+    const newRegionData = {};
+    const newSidoCodeMap = {};
+    const newGugunCodeMap = {};
+
+    if (Array.isArray(res)) {
+      res.forEach(item => {
+        let sName = item.sido.sidoName;
+        if (sidoMap[sName]) {
+            sName = sidoMap[sName];
+        } else {
+            sName = sName.substring(0, 2);
+        }
+
+        const sCode = item.sido.sidoCode;
+        newSidoCodeMap[sName] = sCode;
+        
+        // Map Gugun names to 2 chars and store codes
+        newRegionData[sName] = [];
+        newGugunCodeMap[sName] = {};
+
+        if (item.guguns) {
+            item.guguns.forEach(g => {
+                const gName = g.gugunName.substring(0, 2);
+                newRegionData[sName].push(gName);
+                newGugunCodeMap[sName][gName] = g.gugunCode;
+            });
+        }
+      });
+    }
+
+    regionData.value = newRegionData;
+    sidoCodeMap.value = newSidoCodeMap;
+    gugunCodeMap.value = newGugunCodeMap;
+  } catch (error) {
+    console.error('Error fetching regions:', error);
+  }
+};
 
 // Computed
+const provinces = computed(() => Object.keys(regionData.value));
+
 const currentItems = computed(() => {
-  if (step.value === 1) return provinces;
-  if (step.value === 2 && selectedProvince.value) return regionData[selectedProvince.value];
+  if (step.value === 1) return provinces.value;
+  if (step.value === 2 && selectedProvince.value) return regionData.value[selectedProvince.value] || [];
   return [];
 });
 
@@ -109,12 +194,12 @@ const headerTitle = computed(() => {
 });
 
 const subtitleText = computed(() => {
-  if (step.value === 1) return "돌림판을 돌려 시/도를 정해보세요!";
+  if (step.value === 1) return "아래 지역 중 하나가 선택됩니다!";
   return "상세 지역을 추첨합니다!";
 });
 
 const spinButtonText = computed(() => {
-  if (isSpinning.value) return "돌아가는 중...";
+  if (isSpinning.value) return "추첨 중...";
   if (step.value === 1) return "지역 추첨 시작";
   return "상세 지역 추첨";
 });
@@ -126,141 +211,148 @@ const finalLocationString = computed(() => {
   return selectedProvince.value;
 });
 
-// Watch
-watch(currentItems, () => {
-  // Redraw wheel when items change
-  drawWheel();
-});
-
 onMounted(() => {
-  drawWheel();
+  fetchRegions();
 });
-
-const drawWheel = () => {
-  if (!canvas.value) return;
-  const ctx = canvas.value.getContext('2d');
-  const width = canvas.value.width;
-  const height = canvas.value.height;
-  const centerX = width / 2;
-  const centerY = height / 2;
-  const radius = width / 2 - 10;
-  
-  const items = currentItems.value;
-  if (items.length === 0) return;
-  
-  const arc = (2 * Math.PI) / items.length;
-
-  ctx.clearRect(0, 0, width, height);
-
-  ctx.save();
-  ctx.translate(centerX, centerY);
-  ctx.rotate(currentRotation.value);
-
-  for (let i = 0; i < items.length; i++) {
-    const angle = i * arc;
-    
-    // Slice
-    ctx.beginPath();
-    ctx.fillStyle = colors[i % colors.length];
-    ctx.moveTo(0, 0);
-    ctx.arc(0, 0, radius, angle, angle + arc);
-    ctx.fill();
-    ctx.stroke();
-
-    // Text
-    ctx.save();
-    ctx.translate(Math.cos(angle + arc / 2) * (radius * 0.65), Math.sin(angle + arc / 2) * (radius * 0.65));
-    ctx.rotate(angle + arc / 2 + Math.PI / 2);
-    ctx.fillStyle = "white";
-    ctx.font = "bold 14px Pretendard, sans-serif";
-    ctx.textAlign = "center";
-    ctx.fillText(items[i], 0, 0);
-    ctx.restore();
-  }
-  ctx.restore();
-};
 
 const handleSpinClick = () => {
   if (isSpinning.value) return;
-  spinWheel();
+  startRoulette();
 };
 
-const spinWheel = () => {
+const startRoulette = () => {
+  const items = currentItems.value;
+  if (!items || items.length === 0) return;
+
   isSpinning.value = true;
   showFinalModal.value = false;
+  isFinished.value = false;
 
-  const duration = 3000; 
-  const startVal = currentRotation.value;
-  const randomSpin = Math.random() * 2 * Math.PI + (10 * 2 * Math.PI); 
-  const targetRotation = startVal + randomSpin;
+  // Prepare roulette strip
+  // Repeat items mainly to have enough length for spinning visual
+  // We need enough items to scroll for ~3 seconds.
+  // Let's say we want to spin past around 50-80 items.
+  const repeatCount = 20; 
+  rouletteItems.value = [];
+  for(let i=0; i<repeatCount; i++) {
+    rouletteItems.value.push(...items);
+  }
+
+  // Calculate target
+  // We want to stop at a random item somewhere in the middle-end of the strip
+  // to ensure we have enough "road" to scroll.
+  const totalItems = rouletteItems.value.length;
+  const minIndex = Math.floor(totalItems * 0.6); 
+  const maxIndex = Math.floor(totalItems * 0.8);
+  const targetIdx = Math.floor(Math.random() * (maxIndex - minIndex + 1)) + minIndex;
+  
+  targetIndex.value = targetIdx;
+
+  // Window width is roughly 300px or 100% of container (setup in CSS)
+  // We want the target item to be centered.
+  // Item width = 100, Gap = 10. Total unit = 110.
+  // Center of item = offset + ItemWidth/2
+  // We want Center of item to be at Center of Window
+  // Let's assume window is fixed width for calculation, or we measure it.
+  // For simplicity, let's assume a 300px visible window.
+  // Center is 150px.
+  // Target position: (Index * Unit) + (Unit / 2).
+  // Scroll Offset needed: TargetPosition - WindowCenter.
+  
+  const unit = itemWidth + itemGap;
+  const windowWidth = 300; // Fixed in CSS
+  const targetPos = (targetIdx * unit); 
+  // Adjust so item is centered:
+  // With padding-left: 50% (150px), the strip starts at the center.
+  // We want the item's CENTER to align with the window's CENTER (150px).
+  // Item's Center in natural layout = 150 (padding) + targetPos + (itemWidth/2).
+  // We need to shift by 'offset' so that visual position is 150.
+  // 150 = (150 + targetPos + 50) - offset
+  // offset = targetPos + 50
+  
+  const landingPosition = targetPos + (itemWidth / 2);
+  
+  // Animation loop
+  const duration = 3000;
+  const startOffset = 0;
+  // Make it start smoothly
   
   const startTime = performance.now();
 
   const animate = (time) => {
     const elapsed = time - startTime;
     const progress = Math.min(elapsed / duration, 1);
-    const ease = 1 - Math.pow(1 - progress, 3);
     
-    currentRotation.value = startVal + (targetRotation - startVal) * ease;
-    drawWheel();
+    // Ease out quart
+    const ease = 1 - Math.pow(1 - progress, 4);
+    
+    currentOffset.value = startOffset + (landingPosition - startOffset) * ease;
 
     if (progress < 1) {
       requestAnimationFrame(animate);
     } else {
-      isSpinning.value = false;
-      determineResult();
+      isFinished.value = true;
+      setTimeout(() => {
+        isSpinning.value = false;
+        determineResult(rouletteItems.value[targetIdx]);
+      }, 500); // Wait a bit after showing result
     }
   };
 
   requestAnimationFrame(animate);
 };
 
-const determineResult = () => {
-  const items = currentItems.value;
-  const arc = (2 * Math.PI) / items.length;
-  // Pointer is at Top (1.5 PI)
-  const angleAtPointer = (3 * Math.PI / 2 - currentRotation.value) % (2 * Math.PI);
-  let effectiveAngle = angleAtPointer;
-  if (effectiveAngle < 0) effectiveAngle += 2 * Math.PI;
-  
-  const index = Math.floor(effectiveAngle / arc);
-  const result = items[index];
-
+const determineResult = (result) => {
   if (step.value === 1) {
     selectedProvince.value = result;
+    const sCode = sidoCodeMap.value[result];
+    selectedSidoCode.value = sCode;
+    selectedGugunCode.value = null; // Reset gugun code for new province
     
     // Check if it's a single step region
-    if (singleStepRegions.includes(result)) {
+    if (singleStepRegionCodes.includes(sCode)) {
       setTimeout(() => {
         showFinalModal.value = true;
-      }, 500);
+      }, 300);
     } else {
       // Proceed to Step 2
       setTimeout(() => {
-        step.value = 2; // This triggers computed updates
-        currentRotation.value = 0; // Reset rotation for new wheel
-        drawWheel(); // Force redraw with new items
-      }, 1000);
+        step.value = 2; 
+        currentOffset.value = 0;
+      }, 500);
     }
   } else {
     // Step 2 done.
     selectedDistrict.value = result;
+    // Look up Gugun Code using Province and Gugun Name
+    if (gugunCodeMap.value[selectedProvince.value] && gugunCodeMap.value[selectedProvince.value][result]) {
+        selectedGugunCode.value = gugunCodeMap.value[selectedProvince.value][result];
+    }
     showFinalModal.value = true;
   }
 };
 
 const openAiChat = () => {
-  alert(`AI에게 ${finalLocationString.value} 여행 계획을 물어봅니다! (채팅 모달 연동 예정)`);
+  alert(`AI에게 ${finalLocationString.value} 여행 계획을 물어봅니다!`);
+  const data = {
+    sidoCode: selectedSidoCode.value,
+    gugunCode: selectedGugunCode.value,
+  };
+
+  attractionApi.getAttractionsByRegion(data).then((res) => {
+    console.log(res);
+  }).catch((err) => {
+    console.log(err);
+  });
 };
 
 const closeModal = () => {
-  // Reset completely
   showFinalModal.value = false;
   step.value = 1;
   selectedProvince.value = '';
   selectedDistrict.value = '';
-  currentRotation.value = 0;
-  drawWheel();
+  currentOffset.value = 0;
+  isSpinning.value = false;
 };
 </script>
 
@@ -272,14 +364,14 @@ const closeModal = () => {
   min-height: 100vh;
   background-color: #f8f9fa;
   padding-bottom: 80px;
-  touch-action: pan-y; /* Allow vertical scrolling */
-  overscroll-behavior: contain;
+  touch-action: pan-y;
+  font-family: 'Pretendard', sans-serif;
 }
 
 .header {
   margin-top: 40px;
   text-align: center;
-  margin-bottom: 40px;
+  margin-bottom: 20px;
 }
 
 .header h1 {
@@ -294,39 +386,103 @@ const closeModal = () => {
   font-size: 16px;
 }
 
-.roulette-wrapper {
+.content-wrapper {
+  width: 100%;
+  max-width: 360px; /* Constrain width for mobile look */
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 30px;
+  justify-content: center;
+  min-height: 200px;
+  margin-bottom: 20px;
 }
 
-.wheel-container {
+/* Grid View */
+.grid-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px;
+}
+
+.grid-item {
+  width: 70px;
+  height: 70px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: white;
+  border-radius: 12px;
+  border: 2px solid #ddd;
+  font-weight: bold;
+  color: #555;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+  font-size: 14px;
+}
+
+/* Roulette View */
+.roulette-window {
   position: relative;
   width: 300px;
-  height: 300px;
-  border-radius: 50%;
-  box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+  height: 120px;
   background: white;
-  overflow: hidden; /* To clip canvas if needed, though canvas is round drawn */
+  border-radius: 16px;
+  box-shadow: inset 0 0 20px rgba(0,0,0,0.1);
+  overflow: hidden;
+  border: 4px solid #333;
+  display: flex;
+  align-items: center; /* Vertically center */
 }
 
-/* Pointer at the top */
-.wheel-pointer {
+/* Red Arrow Indicator */
+.indicator {
   position: absolute;
-  top: -10px;
+  top: 0;
   left: 50%;
   transform: translateX(-50%);
   width: 0; 
   height: 0; 
-  border-left: 15px solid transparent;
-  border-right: 15px solid transparent;
-  border-top: 30px solid #333;
+  border-left: 12px solid transparent;
+  border-right: 12px solid transparent;
+  border-top: 20px solid #E74C3C;
   z-index: 10;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+}
+
+.roulette-strip {
+  display: flex;
+  gap: 10px; 
+  padding-left: 50%; /* Start somewhat offset if needed, but we handle it with script */
+  will-change: transform;
+}
+
+.roulette-item {
+  flex: 0 0 100px; /* Fixed width */
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #ccc;
+  border-radius: 10px;
+  font-size: 20px;
+  font-weight: bold;
+  color: white;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.roulette-item.active {
+  box-shadow: 0 0 20px #FFD700;
+  border: 2px solid white;
+}
+
+.action-area {
+  margin-top: 30px;
 }
 
 .spin-btn {
-  padding: 15px 50px;
+  padding: 15px 60px;
   font-size: 18px;
   font-weight: bold;
   background: #007bff;
