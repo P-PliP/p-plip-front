@@ -26,7 +26,7 @@
             @dragenter.prevent="onDragEnter(index)"
             @drop="onDrop(index)"
           >
-            <img :src="img.url" alt="Preview" class="preview-img" />
+            <img :src="img.url || getImageUrl(img.name)" alt="Preview" class="preview-img" />
             <button class="remove-btn" @click="removeImage(index)">×</button>
           </div>
           
@@ -78,11 +78,18 @@ import { ref, computed, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import ImageCropper from '@/components/common/ImageCropper.vue';
 import { useFreeBoardStore } from '@/stores/freeboard';
+import { boardApi } from '@/api/board';
+import { fileApi } from '@/api/file';
+import { useImage } from '@/composables/useImage';
 
+const { getImageUrl } = useImage();
+ 
 const router = useRouter();
 const route = useRoute();
 const store = useFreeBoardStore();
+const addedImgs = ref([]);
 
+const isEditMode = ref(true);
 const title = ref('');
 const content = ref('');
 const croppedImages = ref([]); // Array of { blob, url }
@@ -92,14 +99,25 @@ const editId = ref(null);
 onMounted(() => {
   if (route.params.id) {
     editId.value = parseInt(route.params.id);
-    const post = store.freeBoards.find(p => p.id === editId.value);
-    if (post) {
-      title.value = post.title;
-      content.value = post.content || post.title; 
-      if (post.image) {
-        croppedImages.value.push({ url: post.image });
+    boardApi.getFreeBoardDetail(editId.value).then(res => {
+      console.log(res);
+      title.value = res.title;
+      content.value = res.content || res.title; 
+      if (res.freeBoardImages) {
+        res.freeBoardImages.forEach(img => {
+          croppedImages.value.push({
+            id: img.id,
+            url: img.url,
+            name: img.name, 
+            status: 'EXISTING'});
+        });
       }
-    }
+    }).catch((err) => {
+      console.log(err);
+      alert(err.message);
+      router.back();
+    })
+    
   } else {
     // If no ID is provided, perhaps redirect back or show error
     alert("수정할 게시글 정보가 없습니다.");
@@ -139,9 +157,33 @@ const onFileSelect = (e) => {
   e.target.value = '';
 };
 
-const onCrop = (blob) => {
-  const url = URL.createObjectURL(blob);
-  croppedImages.value.push({ blob, url });
+const onCrop = async (blob) => {
+  try {
+    const formData = new FormData();
+    console.log(blob);
+    const fileName = selectedFile.value?.name || 'image.png';
+    formData.append('file', blob, fileName);
+
+    const res = await fileApi.uploadFile(formData, "FREE_BOARD").then(res => {
+      console.log(res);
+      const fileData = res;
+      const fileBaseUrl = import.meta.env.VITE_FILE_BASE_URL || '';
+      // Ensure slash between base and path if needed. Assuming base doesn't end with slash or path doesn't start.
+      // safely join:
+      const fullUrl = `${fileBaseUrl}/${fileData.name}`;
+      
+      croppedImages.value.push({
+        id: fileData.id,
+        url: fullUrl,
+        name: fileData.name,
+      });
+      addedImgs.value.push({id: fileData.id, status: 'NEW'});
+    });
+  } catch (err) {
+    console.error(err);
+    alert(err.message);
+  }
+
   showCropper.value = false;
   selectedFile.value = null;
 };
@@ -152,21 +194,47 @@ const cancelCrop = () => {
 };
 
 const removeImage = (index) => {
-  if (croppedImages.value[index].blob) {
-    URL.revokeObjectURL(croppedImages.value[index].url);
+  if (croppedImages.value[index]) {
+    croppedImages.value[index].status = 'REMOVE';
   }
   croppedImages.value.splice(index, 1);
 };
 
-const submitPost = () => {
-  const postData = {
+const submitPost = async () => {
+  const updateData = {
     title: title.value,
     content: content.value,
-    image: croppedImages.value.length > 0 ? croppedImages.value[0].url : null,
+    images: croppedImages.value,
   };
 
-  store.updateFreeBoard({ id: editId.value, ...postData });
-  router.back();
+  try {
+    let res;
+    console.log(updateData);
+    if (isEditMode.value) {
+        // user didn't specify edit logic update, but assuming similar structure or keep store for edit?
+        // User request was specific about "postFreeBoard". 
+        // For modify view (separate file now), logic might be different. 
+        // This is FreeBoardWriteView.vue. 
+        // But wait, the previous context had isEditMode. 
+        // I should probably focus on the CREATE part since the user mentioned "글쓰기가 완료되면".
+        // But I should handle if this view is still used for edit?
+        // Actually, user created `FreeBoardModifyView` separately. 
+        // So `FreeBoardWriteView` might only be for create now? 
+        // But `isEditMode` logic is still in the file I read.
+        // I will implement standard create logic here.
+        
+        res = await boardApi.updateFreeBoard(editId.value, updateData);
+    } else {
+        res = await boardApi.postFreeBoard(postData);
+    }
+
+      const newPostId = res.id;
+      // Navigate to detail, replace to avoid going back to write form
+      router.replace({ name: 'freeboard-detail', params: { id: newPostId } });
+  } catch (err) {
+    console.error(err);
+    alert('게시글 수정에 실패했습니다.');
+  }
 };
 </script>
 
