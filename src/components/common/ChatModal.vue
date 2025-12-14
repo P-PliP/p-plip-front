@@ -136,10 +136,15 @@
     <div v-if="isOpen" class="overlay-backdrop" @click="closeBar"></div>
 
     <!-- FAB Trigger (Visible when CLOSED and NOT Loading) -->
+    <!-- Modified to keep icon visible during loading -->
     <button v-if="!isOpen" class="chat-fab" @click="openBar" :class="{ 'loading-mode': isLoading }"
       :disabled="isLoading">
-      <div v-if="isLoading" class="loading-spinner"></div>
-      <svg v-else width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <!-- Gradient Border Spinner (Only visible when loading) -->
+      <div v-if="isLoading" class="gradient-border-spinner"></div>
+
+      <!-- Icon (Always visible, twinkles when loading) -->
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
+        :class="{ 'twinkling': isLoading }">
         <path d="M12 5C13.5 9 15 10.5 19 12C15 13.5 13.5 15 12 19C10.5 15 9 13.5 5 12C9 10.5 10.5 9 12 5Z"
           stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
         <path d="M19 2C19.5 3.5 20.5 4.5 22 5C20.5 5.5 19.5 6.5 19 8C18.5 6.5 17.5 5.5 16 5C17.5 4.5 18.5 3.5 19 2Z"
@@ -154,6 +159,7 @@
 <script setup>
 import { ref, defineProps, defineEmits } from 'vue';
 import { aiApi } from '@/api/ai';
+import { useToastStore } from '@/stores/toast';
 
 const props = defineProps({
   lat: { type: Number, default: 0 },
@@ -161,6 +167,7 @@ const props = defineProps({
 });
 
 const emits = defineEmits(['ai-response']);
+const toastStore = useToastStore();
 
 const isOpen = ref(false);
 const isSettingsOpen = ref(false);
@@ -226,10 +233,19 @@ const handleSend = async () => {
 
     const res = await aiApi.postAiRequest(payload);
     console.log("ChatModal: AI Response", res);
+
+    // Check for empty results
+    if (!res || (Array.isArray(res) && res.length === 0)) {
+      toastStore.addToast('주변에 추천할 수 있는 장소가 없습니다.', 'warning');
+    } else {
+      toastStore.addToast('AI 추천이 완료되었습니다!', 'success');
+    }
+
     // Interceptor already returns the data payload, so we utilize res directly
     emits('ai-response', res);
   } catch (error) {
     console.error("AI API Error:", error);
+    toastStore.addToast('오류가 발생했습니다. 잠시 후 다시 시도해주세요.', 'error');
   } finally {
     isLoading.value = false;
     inputText.value = '';
@@ -464,7 +480,8 @@ const handleSend = async () => {
   justify-content: center;
   z-index: 90;
   cursor: pointer;
-  transition: transform 0.2s, opacity 0.2s;
+  transition: transform 0.2s, background-color 0.2s;
+  /* Removed opacity transition, likely not needed */
 }
 
 .chat-fab:active {
@@ -472,22 +489,66 @@ const handleSend = async () => {
 }
 
 .chat-fab.loading-mode {
-  background: white;
+  /* Maintain shape, maybe change cursor */
   cursor: wait;
+  /* Ensure overflow is visible for any external glowing effects if we decide to use them, 
+     though we are using an internal sized overlay now. */
+  overflow: visible;
+  /* We might want to remove the shadow or keep it? Keeping it looks better usually. */
 }
 
-.loading-spinner {
-  width: 24px;
-  height: 24px;
-  border: 3px solid rgba(59, 130, 246, 0.3);
+/* Gradient Border Spinner */
+.gradient-border-spinner {
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  right: -4px;
+  bottom: -4px;
   border-radius: 50%;
-  border-top-color: #3b82f6;
+
+  /* The Gradient Ring */
+  background: conic-gradient(from 0deg, transparent 0%, #3b82f6 100%);
+
+  /* rotation animation */
   animation: spin 1s linear infinite;
+
+  /* Mask to cut out the center, leaving only a border */
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #fff calc(100% - 3px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #fff calc(100% - 3px));
+
+  /* Ensure it sits nicely */
+  z-index: 10;
+  pointer-events: none;
+}
+
+/* Twinkle Animation for the star icon */
+.twinkling {
+  animation: twinkle 1.5s infinite ease-in-out;
 }
 
 @keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+
   to {
     transform: rotate(360deg);
+  }
+}
+
+@keyframes twinkle {
+
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+    filter: brightness(100%);
+  }
+
+  50% {
+    opacity: 0.6;
+    transform: scale(0.85);
+    filter: brightness(130%);
   }
 }
 
@@ -534,73 +595,5 @@ const handleSend = async () => {
 
 .send-btn:hover:not(:disabled) svg {
   animation: sparkle 0.8s infinite ease-in-out;
-}
-
-/* Loading Spinner Gradient Shadow */
-.chat-fab.loading-mode {
-  background: white;
-  cursor: wait;
-  overflow: visible;
-  /* Allow pseudo-element to show outside if needed, but here we want border effect */
-  position: absolute;
-  /* Already absolute, but ensuring */
-}
-
-.chat-fab.loading-mode::before {
-  content: '';
-  position: absolute;
-  top: -4px;
-  left: -4px;
-  right: -4px;
-  bottom: -4px;
-  border-radius: 50%;
-  background: conic-gradient(from 0deg, transparent 0%, #3b82f6 100%);
-  animation: spin 1s linear infinite;
-  z-index: -1;
-  /* Behind the white button */
-  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-  padding: 4px;
-  /* Width of the border/shadow */
-}
-
-/* Note: The above mask trick creates a border. 
-   If we want a "shadow" effect (glow), a box-shadow might be better, or a blur.
-   User said "푸른색 그라데이션이 포함된 그림자가 빙글빙글 돌면서".
-   A rotating conic gradient border often looks like a "loading ring". 
-   Let's stick to the gradient ring behind the white button.
-   If we use z-index -1 and the button is white, we just need the gradient to be larger.
-*/
-
-.chat-fab.loading-mode::after {
-  /* Inner white circle to cover the center of the gradient if we don't use z-index or mask */
-  content: '';
-  position: absolute;
-  inset: 2px;
-  /* Small inset */
-  background: white;
-  border-radius: 50%;
-  z-index: 0;
-}
-
-/* Adjust loading-spinner to be on top or remove it? 
-   User said "loading state". 
-   Currently there is a .loading-spinner div. 
-   Let's keep the spinner inside as a secondary indicator or remove it if the shadow is enough.
-   The user said "shadow spinning around... to indicate loading".
-   I will keep the inner spinner but maybe make it subtle or removal it if it conflicts.
-   Let's keep the inner spinner as is, on top.
-*/
-.loading-spinner {
-  width: 24px;
-  height: 24px;
-  border: 3px solid rgba(59, 130, 246, 0.3);
-  border-radius: 50%;
-  border-top-color: #3b82f6;
-  animation: spin 1s linear infinite;
-  z-index: 1;
-  /* Above the white background */
 }
 </style>

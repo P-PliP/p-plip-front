@@ -10,10 +10,22 @@
         <!-- TopOverlay: Search & Filter -->
         <div class="top-overlay">
             <SearchBar @search="onSearch" />
-            <div class="filter-wrapper">
-                <CategoryFilter @select-category="updateCategory" />
+            <div class="filter-row">
+                <div class="filter-wrapper">
+                    <CategoryFilter @select-category="updateCategory" />
+                </div>
             </div>
         </div>
+
+        <!-- Clear Map Button (Bottom Left, Symmetric to ChatFab) -->
+        <button class="clear-map-btn" @click="onClearMap" title="지도 지우기">
+            <!-- Eraser SVG Icon -->
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path
+                    d="M15.1186 3.00344C15.9329 2.18907 17.2533 2.18907 18.0676 3.00344L20.9964 5.93223C21.8108 6.7466 21.8108 8.06704 20.9964 8.88141L11.558 18.3198C11.5165 18.3614 11.4673 18.3944 11.4132 18.4168L7.87868 19.8814C7.45263 20.058 6.96984 19.8971 6.75736 19.5L6.38699 18.8077L4.69239 20.5023C4.30186 20.8929 3.6687 20.8929 3.27817 20.5023C2.88765 20.1118 2.88765 19.4786 3.27817 19.0881L4.97277 17.3935L4.5 16.5103C4.28751 16.1132 4.45934 15.6179 4.88141 15.4213L6.346 11.8868C6.36845 11.8327 6.40141 11.7835 6.44299 11.7419L15.1186 3.00344ZM16.5932 4.47805L7.91761 13.1537L7.2005 14.8841L9.11579 16.7994L10.8462 16.0823L19.5218 7.40669L16.5932 4.47805Z"
+                    fill="#3b82f6" />
+            </svg>
+        </button>
 
         <!-- Toggle Button (Visible when list is closed and has data) -->
         <button v-if="!isListOpen && places.length > 0" class="list-toggle-btn" @click="openSheet">
@@ -65,6 +77,7 @@ const mapComp = ref(null);
 const placeList = ref(null);
 const places = ref([]);
 const selectedContentType = ref([]);
+const pendingContentType = ref([]);
 const isLoading = ref(false);
 const searchQuery = ref('');
 const searchRadius = ref(0);
@@ -79,10 +92,40 @@ const onSearch = ({ query, dist }) => {
     } else {
         searchRadius.value = dist * 1000;
     }
+
+    // Commit pending categories to trigger search
+    selectedContentType.value = [...pendingContentType.value];
+
+    // Force refresh if needed
+    if (mapComp.value && mapComp.value.refreshMap) {
+        // Using refreshMap to ensure search happens even if params didn't technically change
+        // (though setting selectedContentType usually triggers it)
+        // But since we want "Search Button -> Search", explicit is better if no change.
+        // However, MapComponent watcher is reliable.
+    }
 };
 
 const updateCategory = (categories) => {
-    selectedContentType.value = categories;
+    pendingContentType.value = categories;
+
+    // If user deselects all, clear map immediately (User Request 2)
+    if (categories.length === 0) {
+        console.log("MainView: All categories deselected. Clearing map.");
+        if (mapComp.value) {
+            mapComp.value.setMarkers([]);
+        }
+        places.value = [];
+        closeSheet();
+        // Removed selectedContentType.value = []; to prevent API auto-fetch
+    }
+};
+
+const onClearMap = () => {
+    if (mapComp.value) {
+        mapComp.value.setMarkers([]);
+    }
+    places.value = [];
+    closeSheet();
 };
 
 const updatePlaces = (newPlaces) => {
@@ -252,8 +295,38 @@ const stopDrag = () => {
 }
 
 .filter-wrapper {
-    width: 100%;
+    flex: 1;
     overflow: hidden;
+}
+
+.filter-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+}
+
+.clear-map-btn {
+    position: absolute;
+    bottom: calc(80px + env(safe-area-inset-bottom));
+    left: 20px;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: white;
+    border: none;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 90;
+    cursor: pointer;
+    transition: transform 0.2s, background-color 0.2s;
+}
+
+.clear-map-btn:active {
+    transform: scale(0.95);
+    background-color: #f5f5f5;
 }
 
 .list-toggle-btn {

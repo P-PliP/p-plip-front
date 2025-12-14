@@ -4,23 +4,19 @@
       <!-- Profile Header -->
       <div class="profile-header">
         <div class="avatar-wrapper">
-          <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=80" alt="Profile" class="avatar-img">
+          <img :src="profileImageView" alt="Profile" class="avatar-img">
         </div>
         <div class="profile-text">
-          <h2 class="user-name">탐험가 Alex</h2>
-          <p class="user-status">5개 도시 여행 중</p>
+          <h2 class="user-name">{{ nickname }}</h2>
+          <p class="user-status">{{ desc }}</p>
         </div>
       </div>
 
       <!-- Stats Cards -->
       <div class="stats-row">
         <div class="stat-card">
-          <span class="stat-value">3</span>
-          <span class="stat-label">내 플랜</span>
-        </div>
-        <div class="stat-card">
-          <span class="stat-value text-sm">부산 맛집 탐방기</span>
-          <span class="stat-label">최근 플랜</span>
+          <span class="stat-value text-sm">내 스토리 북</span>
+          <span class="stat-label">추후 구현</span>
         </div>
       </div>
 
@@ -33,49 +29,65 @@
           <li class="menu-item" @click="handleMyPosts">
             <div class="menu-icon">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M11 4H4V20H20V14" stroke="#666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                <path d="M18.5 2.5L21.5 5.5L13 14L10 14L10 11L18.5 2.5Z" stroke="#666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M11 4H4V20H20V14" stroke="#666" stroke-width="2" stroke-linecap="round"
+                  stroke-linejoin="round" />
+                <path d="M18.5 2.5L21.5 5.5L13 14L10 14L10 11L18.5 2.5Z" stroke="#666" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round" />
               </svg>
             </div>
             <span class="menu-text">내가 쓴 글</span>
-            <svg class="arrow-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M9 18L15 12L9 6" stroke="#ccc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <svg class="arrow-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"
+              xmlns="http://www.w3.org/2000/svg">
+              <path d="M9 18L15 12L9 6" stroke="#ccc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
             </svg>
           </li>
           <li class="menu-item" @click="handleMyReviews">
             <div class="menu-icon">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M11 4H4V20H20V14" stroke="#666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                <path d="M18.5 2.5L21.5 5.5L13 14L10 14L10 11L18.5 2.5Z" stroke="#666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M11 4H4V20H20V14" stroke="#666" stroke-width="2" stroke-linecap="round"
+                  stroke-linejoin="round" />
+                <path d="M18.5 2.5L21.5 5.5L13 14L10 14L10 11L18.5 2.5Z" stroke="#666" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round" />
               </svg>
             </div>
             <span class="menu-text">내 리뷰</span>
-            <svg class="arrow-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M9 18L15 12L9 6" stroke="#ccc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <svg class="arrow-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"
+              xmlns="http://www.w3.org/2000/svg">
+              <path d="M9 18L15 12L9 6" stroke="#ccc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
             </svg>
           </li>
           <li class="menu-item" @click="handleProfileEdit">
             <div class="menu-icon">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M20 21V19C20 17.9391 19.5786 16.9217 18.8284 16.1716C18.0783 15.4214 17.0609 15 16 15H8C6.93913 15 5.92172 15.4214 5.17157 16.1716C4.42143 16.9217 4 17.9391 4 19V21" stroke="#666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                <path d="M12 11C14.2091 11 16 9.20914 16 7C16 4.79086 14.2091 3 12 3C9.79086 3 8 4.79086 8 7C8 9.20914 9.79086 11 12 11Z" stroke="#666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path
+                  d="M20 21V19C20 17.9391 19.5786 16.9217 18.8284 16.1716C18.0783 15.4214 17.0609 15 16 15H8C6.93913 15 5.92172 15.4214 5.17157 16.1716C4.42143 16.9217 4 17.9391 4 19V21"
+                  stroke="#666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                <path
+                  d="M12 11C14.2091 11 16 9.20914 16 7C16 4.79086 14.2091 3 12 3C9.79086 3 8 4.79086 8 7C8 9.20914 9.79086 11 12 11Z"
+                  stroke="#666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
               </svg>
             </div>
             <span class="menu-text">프로필 수정</span>
-            <svg class="arrow-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M9 18L15 12L9 6" stroke="#ccc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <svg class="arrow-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"
+              xmlns="http://www.w3.org/2000/svg">
+              <path d="M9 18L15 12L9 6" stroke="#ccc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
             </svg>
           </li>
           <li class="menu-item">
             <div class="menu-icon">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z" stroke="#666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                <path d="M19.4 15C20.0627 14.0727 20.4182 12.9463 20.4182 11.8C20.4182 10.6537 20.0627 9.52729 19.4 8.6L21.4 7.4C22.3444 8.71856 22.8485 10.2796 22.8485 11.8C22.8485 13.3204 22.3444 14.8814 21.4 16.2L19.4 15ZM12 23C10.8537 23 9.72729 22.6444 8.8 21.9818L10 19.9818C10.6091 20.4182 11.3 20.6545 12 20.6545C12.7 20.6545 13.3909 20.4182 14 19.9818L15.2 21.9818C14.2727 22.6444 13.1463 23 12 23ZM4.6 15L2.6 16.2C1.65558 14.8814 1.15152 13.3204 1.15152 11.8C1.15152 10.2796 1.65558 8.71856 2.6 7.4L4.6 8.6C3.93727 9.52729 3.58182 10.6537 3.58182 11.8C3.58182 12.9463 3.93727 14.0727 4.6 15ZM12 1C13.1463 1 14.2727 1.35558 15.2 2.01818L14 4.01818C13.3909 3.58182 12.7 3.34545 12 3.34545C11.3 3.34545 10.6091 3.58182 10 4.01818L8.8 2.01818C9.72729 1.35558 10.8537 1 12 1Z" stroke="#666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path
+                  d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z"
+                  stroke="#666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                <path
+                  d="M19.4 15C20.0627 14.0727 20.4182 12.9463 20.4182 11.8C20.4182 10.6537 20.0627 9.52729 19.4 8.6L21.4 7.4C22.3444 8.71856 22.8485 10.2796 22.8485 11.8C22.8485 13.3204 22.3444 14.8814 21.4 16.2L19.4 15ZM12 23C10.8537 23 9.72729 22.6444 8.8 21.9818L10 19.9818C10.6091 20.4182 11.3 20.6545 12 20.6545C12.7 20.6545 13.3909 20.4182 14 19.9818L15.2 21.9818C14.2727 22.6444 13.1463 23 12 23ZM4.6 15L2.6 16.2C1.65558 14.8814 1.15152 13.3204 1.15152 11.8C1.15152 10.2796 1.65558 8.71856 2.6 7.4L4.6 8.6C3.93727 9.52729 3.58182 10.6537 3.58182 11.8C3.58182 12.9463 3.93727 14.0727 4.6 15ZM12 1C13.1463 1 14.2727 1.35558 15.2 2.01818L14 4.01818C13.3909 3.58182 12.7 3.34545 12 3.34545C11.3 3.34545 10.6091 3.58182 10 4.01818L8.8 2.01818C9.72729 1.35558 10.8537 1 12 1Z"
+                  stroke="#666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
               </svg>
             </div>
             <span class="menu-text">설정</span>
-            <svg class="arrow-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M9 18L15 12L9 6" stroke="#ccc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <svg class="arrow-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"
+              xmlns="http://www.w3.org/2000/svg">
+              <path d="M9 18L15 12L9 6" stroke="#ccc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
             </svg>
           </li>
         </ul>
@@ -107,50 +119,83 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
+import { userApi } from '@/api/user'; // Import userApi
 
 import NavBar from '@/components/common/Navbar.vue';
 import ChatModal from '@/components/common/ChatModal.vue';
-import { useRoute } from 'vue-router'; // Although router is used, route might be needed for current path if not using router.currentRoute
+import { useRoute } from 'vue-router';
 
 const router = useRouter();
-const route = useRoute(); // ensuring we have route
+const route = useRoute();
 const authStore = useAuthStore();
+
+// Reactive state for user info
+const nickname = ref('');
+const desc = ref('');
+const profileImage = ref(null);
+
+// Computed property for profile image path
+const profileImageView = computed(() => {
+  if (profileImage.value && profileImage.value.path) {
+    return `${import.meta.env.VITE_IMAGE_BASE_URL}${profileImage.value.path}`;
+  }
+  return '/user/default.png';
+});
+
+// Fetch user profile on mount
+onMounted(async () => {
+  if (authStore.isLoggedIn) {
+    try {
+      const response = await userApi.getUserProfile();
+      nickname.value = response.nickname || '여행자'; // Default value if nickname is missing
+      desc.value = response.desc || '새로운 여행을 계획해보세요!'; // Default value if desc is missing
+      profileImage.value = response.profileImage;
+    } catch (error) {
+      console.error("Failed to fetch user profile:", error);
+    }
+  } else {
+    // Handle guest state if necessary, or leave defaults empty
+    nickname.value = '게스트';
+    desc.value = '로그인이 필요합니다.';
+  }
+});
+
 
 const handleMyPosts = () => {
   if (!authStore.isLoggedIn) {
-     alert("로그인이 필요합니다.");
-     router.push({ 
-       name: 'login', 
-       query: { redirect: router.currentRoute.value.fullPath } 
-     });
-     return;
+    alert("로그인이 필요합니다.");
+    router.push({
+      name: 'login',
+      query: { redirect: router.currentRoute.value.fullPath }
+    });
+    return;
   }
   router.push({ name: 'my-posts' });
 };
 
 const handleMyReviews = () => {
   if (!authStore.isLoggedIn) {
-     alert("로그인이 필요합니다.");
-     router.push({ 
-       name: 'login', 
-       query: { redirect: router.currentRoute.value.fullPath } 
-     });
-     return;
+    alert("로그인이 필요합니다.");
+    router.push({
+      name: 'login',
+      query: { redirect: router.currentRoute.value.fullPath }
+    });
+    return;
   }
   router.push({ name: 'my-reviews' });
 };
 
 const handleProfileEdit = () => {
   if (!authStore.isLoggedIn) {
-     alert("로그인이 필요합니다.");
-     router.push({ 
-       name: 'login', 
-       query: { redirect: router.currentRoute.value.fullPath } 
-     });
-     return;
+    alert("로그인이 필요합니다.");
+    router.push({
+      name: 'login',
+      query: { redirect: router.currentRoute.value.fullPath }
+    });
+    return;
   }
   router.push({ name: 'profile-edit' });
 };
@@ -178,15 +223,18 @@ const handleLogout = () => {
   background-color: white;
   display: flex;
   flex-direction: column;
-  touch-action: none; /* Prevent whole page drag */
+  touch-action: none;
+  /* Prevent whole page drag */
 }
 
 .content-wrapper {
   flex: 1;
   padding: 20px;
   overflow-y: auto;
-  padding-bottom: 100px; /* Space for bottom nav */
-  touch-action: pan-y; /* Allow vertical scrolling */
+  padding-bottom: 100px;
+  /* Space for bottom nav */
+  touch-action: pan-y;
+  /* Allow vertical scrolling */
   overscroll-behavior: contain;
 }
 
@@ -206,7 +254,7 @@ const handleLogout = () => {
   border-radius: 50%;
   overflow: hidden;
   border: 2px solid #fff;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
 .avatar-img {
@@ -251,7 +299,7 @@ const handleLogout = () => {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .stat-value {
@@ -272,7 +320,8 @@ const handleLogout = () => {
 .action-btn {
   width: 100%;
   padding: 16px;
-  background: #87CEEB; /* Sky blue */
+  background: #87CEEB;
+  /* Sky blue */
   border: none;
   border-radius: 16px;
   color: white;
@@ -295,7 +344,8 @@ const handleLogout = () => {
 .login-btn {
   width: 100%;
   padding: 16px;
-  background: #56B4E9; /* Slightly darker sky blue */
+  background: #56B4E9;
+  /* Slightly darker sky blue */
   border: none;
   border-radius: 16px;
   color: white;
@@ -317,7 +367,8 @@ const handleLogout = () => {
 .signup-btn {
   width: 100%;
   padding: 16px;
-  background: #87CEEB; /* My Plan button color */
+  background: #87CEEB;
+  /* My Plan button color */
   border: none;
   border-radius: 16px;
   color: white;
@@ -334,7 +385,8 @@ const handleLogout = () => {
 .logout-btn {
   width: 100%;
   padding: 16px;
-  background: #FF8A80; /* Light Red */
+  background: #FF8A80;
+  /* Light Red */
   border: none;
   border-radius: 16px;
   color: white;

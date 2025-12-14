@@ -56,7 +56,7 @@ const coordinate = {
 const selectedPlace = ref(null);
 const mapRef = ref(null);
 const markerList = ref([]);
-const pageNum = ref(1);
+const pageNum = ref(0);
 const isLoading = ref(false);
 const isLastPage = ref(false);
 
@@ -139,7 +139,7 @@ const fetchAttractions = (isReset = true, shouldCenter = false) => {
     centerLat,
     centerLng,
     pageNum.value,
-    10,
+    10000,
     radius,
     props.contentType.length > 0 ? props.contentType.join(',') : null
   ).then(response => {
