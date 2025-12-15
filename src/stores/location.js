@@ -50,11 +50,18 @@ export const useLocationStore = defineStore('location', () => {
         });
     };
 
+    const updateLocation = (lat, lng) => {
+        location.value = { lat, lng };
+        // We might want to trigger a fetch or just update state.
+        // MapComponent watches props/state triggers, but let's ensure consistency.
+    };
+
     return {
         location,
         isLoading,
         error,
         isInitialized,
-        fetchCurrentLocation
+        fetchCurrentLocation,
+        updateLocation
     };
 });

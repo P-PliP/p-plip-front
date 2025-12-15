@@ -12,21 +12,17 @@
             <h2 class="section-title">진행 중인 여행</h2>
             <SortFilter v-model="ongoingSortOrder" />
           </div>
-          <div 
-            class="ongoing-list" 
-            ref="ongoingListRef"
-            @mousedown="startDrag($event, 'ongoing')"
-            @mouseleave="stopDrag"
-            @mouseup="stopDrag"
-            @mousemove="onDrag($event, 'ongoing')"
-            @wheel="onWheel($event, 'ongoing')"
-          >
+          <div class="ongoing-list" ref="ongoingListRef" @mousedown="startDrag($event, 'ongoing')"
+            @mouseleave="stopDrag" @mouseup="stopDrag" @mousemove="onDrag($event, 'ongoing')"
+            @wheel="onWheel($event, 'ongoing')">
+            <!-- Loading Card -->
+            <div v-if="planStore.isGeneratingPlan" class="loading-card">
+              <div class="spinner"></div>
+              <span>AI가 계획을 생성중입니다...</span>
+            </div>
+
             <!-- Card Item -->
-            <TripCard 
-              v-for="trip in sortedOngoingTrips" 
-              :key="trip.id" 
-              :trip="trip"
-            />
+            <TripCard v-for="trip in sortedOngoingTrips" :key="trip.id" :trip="trip" />
           </div>
         </section>
 
@@ -36,22 +32,11 @@
             <h2 class="section-title">지난 여행</h2>
             <SortFilter v-model="pastSortOrder" />
           </div>
-          <div 
-            class="ongoing-list"
-            ref="pastListRef"
-            @mousedown="startDrag($event, 'past')"
-            @mouseleave="stopDrag"
-            @mouseup="stopDrag"
-            @mousemove="onDrag($event, 'past')"
-            @wheel="onWheel($event, 'past')"
-          >
-            <TripCard 
-              v-for="trip in sortedPastTrips" 
-              :key="trip.id" 
-              :trip="trip"
-            />
+          <div class="ongoing-list" ref="pastListRef" @mousedown="startDrag($event, 'past')" @mouseleave="stopDrag"
+            @mouseup="stopDrag" @mousemove="onDrag($event, 'past')" @wheel="onWheel($event, 'past')">
+            <TripCard v-for="trip in sortedPastTrips" :key="trip.id" :trip="trip" />
           </div>
-          
+
         </section>
       </div>
     </div>
@@ -64,52 +49,56 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import NavBar from '@/components/common/Navbar.vue';
 import TripCard from '@/components/attraction/TripCard.vue';
 import SortFilter from '@/components/common/SortFilter.vue';
+import { usePlanStore } from '@/stores/plan';
 
-const ongoingTrips = ref([
-  {
-    id: 1,
-    title: '제주도 힐링 여행',
-    startDate: '2023.11.15',
-    endDate: '2023.11.18',
-    progress: 20,
-    image: 'https://images.unsplash.com/photo-1544644181-1484b3fdfc62?q=80&w=800&auto=format&fit=crop'
-  },
-  {
-    id: 2,
-    title: '부산 먹방 투어',
-    startDate: '2023.12.20',
-    endDate: '2023.12.22',
-    progress: 0,
-    image: 'https://images.unsplash.com/photo-1634882194607-d57b49467652?q=80&w=800&auto=format&fit=crop'
-  }
-]);
+const planStore = usePlanStore();
 
-const pastTrips = ref([
-  {
-    id: 101,
-    title: '강릉 식도락 여행',
-    startDate: '2023.08.01',
-    endDate: '2023.08.03',
-    progress: 100,
-    image: 'https://images.unsplash.com/photo-1554652285-b9f2ad8708c0?q=80&w=400&auto=format&fit=crop'
-  },
-  {
-    id: 102,
-    title: '부산 뚜벅이 여행',
-    startDate: '2023.05.10',
-    endDate: '2023.05.12',
-    progress: 100,
-    image: 'https://images.unsplash.com/photo-1582218000305-6497fba9d168?q=80&w=400&auto=format&fit=crop'
-  }
-]);
-
-// Sorting Logic
 const ongoingSortOrder = ref('desc');
 const pastSortOrder = ref('desc');
+
+onMounted(() => {
+  planStore.fetchPlans();
+});
+
+const calculateProgress = (start, end) => {
+  const startDate = new Date(start);
+  const endDate = new Date(end);
+  const today = new Date();
+
+  // Reset hours for accurate date comparison
+  today.setHours(0, 0, 0, 0);
+  startDate.setHours(0, 0, 0, 0);
+  endDate.setHours(0, 0, 0, 0);
+
+  if (today < startDate) return 0;
+  if (today > endDate) return 100;
+
+  const total = endDate - startDate;
+  if (total <= 0) return 100; // Single day trip or invalid
+
+  const elapsed = today - startDate;
+  return Math.round((elapsed / total) * 100);
+};
+
+const processedOngoingTrips = computed(() => {
+  return planStore.ongoingPlans.map(plan => ({
+    ...plan,
+    image: plan.thumbnail, // Map API 'thumbnail' to UI 'image'
+    progress: calculateProgress(plan.startDate, plan.endDate)
+  }));
+});
+
+const processedPastTrips = computed(() => {
+  return planStore.pastPlans.map(plan => ({
+    ...plan,
+    image: plan.thumbnail,
+    progress: 100 // Past trips are always 100%
+  }));
+});
 
 const sortTrips = (trips, order) => {
   return [...trips].sort((a, b) => {
@@ -119,8 +108,8 @@ const sortTrips = (trips, order) => {
   });
 };
 
-const sortedOngoingTrips = computed(() => sortTrips(ongoingTrips.value, ongoingSortOrder.value));
-const sortedPastTrips = computed(() => sortTrips(pastTrips.value, pastSortOrder.value));
+const sortedOngoingTrips = computed(() => sortTrips(processedOngoingTrips.value, ongoingSortOrder.value));
+const sortedPastTrips = computed(() => sortTrips(processedPastTrips.value, pastSortOrder.value));
 
 const continuePlan = (id) => {
   console.log('Continue plan', id);
@@ -155,7 +144,7 @@ const onDrag = (e, type) => {
   if (!isDown.value) return;
   const container = getContainer(type);
   if (activeContainer.value !== container) return; // Prevent dragging wrong container
-  
+
   e.preventDefault();
   const x = e.pageX - container.offsetLeft;
   const walk = (x - startX.value) * 2; // Scroll-fast
@@ -181,14 +170,17 @@ const onWheel = (e, type) => {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  touch-action: none; /* Prevent whole page drag */
+  touch-action: none;
+  /* Prevent whole page drag */
 }
 
 .scroll-container {
   flex: 1;
   overflow-y: auto;
-  padding-bottom: 100px; /* Space for FAB and Bottom Nav */
-  touch-action: pan-y; /* Allow vertical scrolling */
+  padding-bottom: 100px;
+  /* Space for FAB and Bottom Nav */
+  touch-action: pan-y;
+  /* Allow vertical scrolling */
   overscroll-behavior: contain;
 }
 
@@ -247,24 +239,65 @@ const onWheel = (e, type) => {
   display: flex;
   gap: 16px;
   overflow-x: auto;
-  padding-bottom: 1px; /* Avoid clip */
+  padding-bottom: 1px;
+  /* Avoid clip */
   /* Hide scrollbar */
-  scrollbar-width: none; 
-  touch-action: pan-x pan-y; /* Allow horizontal scroll and vertical page scroll */
+  scrollbar-width: none;
+  touch-action: pan-x pan-y;
+  /* Allow horizontal scroll and vertical page scroll */
 }
+
 .ongoing-list::-webkit-scrollbar {
   display: none;
+}
+
+/* Loading Card */
+.loading-card {
+  min-width: 240px;
+  width: 72%;
+  height: 220px;
+  /* Approximate height matching TripCard */
+  background: #f8f9fa;
+  border-radius: 16px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  color: #666;
+  font-weight: 600;
+  font-size: 14px;
+  border: 2px dashed #e0e0e0;
+}
+
+.spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid #eee;
+  border-top-color: #2196F3;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* FAB */
 .fab {
   position: absolute;
-  bottom: 100px; /* Above navbar */
+  bottom: 100px;
+  /* Above navbar */
   right: 20px;
   width: 56px;
   height: 56px;
   border-radius: 50%;
-  background-color: #00bfff; /* Cyan/Blue tone */
+  background-color: #00bfff;
+  /* Cyan/Blue tone */
   border: none;
   box-shadow: 0 4px 12px rgba(0, 191, 255, 0.4);
   display: flex;

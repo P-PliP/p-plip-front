@@ -3,11 +3,11 @@
     <KakaoMap :lat="coordinate.lat" :lng="coordinate.lng" :draggable="true" width="100%" height="100%"
       @onLoadKakaoMap="onLoadKakaoMap">
       <!-- User Location Marker (Red) -->
-      <KakaoMapMarker :lat="userLocation.lat" :lng="userLocation.lng" :clickable="false" :image="{
+      <KakaoMapMarker :lat="userLocation.lat" :lng="userLocation.lng" :draggable="true" :clickable="false" :image="{
         imageSrc: 'https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/marker_red.png',
         imageWidth: 64,
         imageHeight: 69
-      }" />
+      }" @onLoadKakaoMapMarker="onLoadUserMarker" />
 
       <KakaoMapMarker v-for="marker in markerList" :key="marker.no" :lat="marker.latitude" :lng="marker.longitude"
         :clickable="true" :title="marker.title" @onLoadKakaoMapMarker="onLoadMarker($event, marker)"
@@ -20,6 +20,16 @@
         <PlaceDetailSheet :place="selectedPlace" @close="closeModal" />
       </div>
     </Teleport>
+
+    <!-- My Location Button -->
+    <button class="my-location-btn" @click="resetToCurrentLocation" :disabled="isLocating">
+      <div v-if="isLocating" class="spinner"></div>
+      <svg v-else width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5L12 2Z" stroke="white" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round" />
+        <circle cx="12" cy="12" r="3" fill="white" />
+      </svg>
+    </button>
   </div>
 </template>
 
@@ -58,6 +68,7 @@ const mapRef = ref(null);
 const markerList = ref([]);
 const pageNum = ref(0);
 const isLoading = ref(false);
+const isLocating = ref(false); // For My Location button spinner
 const isLastPage = ref(false);
 
 const locationStore = useLocationStore();
@@ -290,6 +301,36 @@ const onLoadMarker = (markerRef, markerItem) => {
   }
 };
 
+const onLoadUserMarker = (markerRef) => {
+  if (markerRef && window.kakao && window.kakao.maps) {
+    window.kakao.maps.event.addListener(markerRef, 'dragend', () => {
+      const pos = markerRef.getPosition();
+      const lat = pos.getLat();
+      const lng = pos.getLng();
+
+      console.log(`User dragged marker to: ${lat}, ${lng}`);
+      locationStore.updateLocation(lat, lng);
+
+      // Refresh attractions around new location
+      // fetchAttractions(true, false);
+    });
+  }
+};
+
+const resetToCurrentLocation = async () => {
+  if (isLocating.value) return;
+  isLocating.value = true;
+  try {
+    const loc = await locationStore.fetchCurrentLocation();
+    moveToLocation(loc.lat, loc.lng, initialLevel.value);
+    // fetchAttractions(true, false);
+  } catch (e) {
+    console.error("Failed to reset location:", e);
+  } finally {
+    isLocating.value = false;
+  }
+};
+
 const closeModal = () => {
   selectedPlace.value = null;
 };
@@ -335,6 +376,49 @@ onDeactivated(() => {
 
   to {
     opacity: 1;
+  }
+}
+
+.my-location-btn {
+  position: absolute;
+  bottom: 24px;
+  right: 24px;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #0095f6;
+  border: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 200;
+  /* Above bottom sheet if possible, but map is z=0 */
+  transition: transform 0.2s, background 0.2s;
+}
+
+.my-location-btn:active {
+  transform: scale(0.95);
+}
+
+.my-location-btn:disabled {
+  background: #999;
+  cursor: not-allowed;
+}
+
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
   }
 }
 </style>
