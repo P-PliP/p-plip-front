@@ -1,5 +1,6 @@
 <template>
   <div class="app-container">
+    <Toast />
     <router-view v-slot="{ Component }">
       <keep-alive include="MainView">
         <component :is="Component" />
@@ -8,6 +9,10 @@
   </div>
 </template>
 
+<script setup>
+import Toast from '@/components/common/Toast.vue';
+</script>
+
 <style>
 body {
   margin: 0;
@@ -15,7 +20,8 @@ body {
   display: flex;
   justify-content: center;
   min-height: 100vh;
-  overscroll-behavior: none; /* Prevent pull-to-refresh/bounce globally */
+  overscroll-behavior: none;
+  /* Prevent pull-to-refresh/bounce globally */
 }
 
 #app {
@@ -30,11 +36,12 @@ body {
 <style scoped>
 .app-container {
   width: 100%;
-  max-width: 430px; /* Mobile width */
+  max-width: 430px;
+  /* Mobile width */
   min-height: 100vh;
   background-color: white;
   position: relative;
-  box-shadow: 0 0 20px rgba(0,0,0,0.1);
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
   overflow: hidden;
 }
 </style>
