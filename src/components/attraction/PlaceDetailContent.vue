@@ -9,20 +9,16 @@
       </div>
       <!-- Dots indicator -->
       <div v-if="place.images && place.images.length > 1" class="carousel-dots">
-        <div 
-          v-for="(img, index) in place.images" 
-          :key="index" 
-          class="dot" 
-          :class="{ active: currentImageIndex === index }"
-        ></div>
+        <div v-for="(img, index) in place.images" :key="index" class="dot"
+          :class="{ active: currentImageIndex === index }"></div>
       </div>
     </div>
 
     <!-- Content Card -->
-    <PlaceInfoCard :place="place" />
+    <PlaceInfoCard :place="place" @close="$emit('close')" />
 
     <!-- Action Buttons -->
-    <PlaceActionButtons v-if="visible" :place="place" />
+    <PlaceActionButtons v-if="visible" :place="place" @close="$emit('close')" />
   </div>
 </template>
 
@@ -50,6 +46,8 @@ const props = defineProps({
   }
 });
 
+defineEmits(['close']);
+
 const currentImageIndex = ref(0);
 
 const onScroll = (e) => {
@@ -73,17 +71,17 @@ const scrollToIndex = (index) => {
 const onWheel = (e) => {
   e.preventDefault();
   e.stopPropagation();
-  
+
   if (isScrolling) return;
-  
+
   // Threshold to ignore small accidental scrolls
   if (Math.abs(e.deltaY) < 10) return;
 
   isScrolling = true;
-  
+
   // Use props.place.images (need to access props)
   const totalImages = props.place.images ? props.place.images.length : 0;
-  
+
   if (e.deltaY > 0) {
     // Scroll down/right -> Next image
     if (currentImageIndex.value < totalImages - 1) {
@@ -106,13 +104,17 @@ const onWheel = (e) => {
 <style scoped>
 /* Container for content and buttons at the bottom */
 .bottom-content-wrapper {
-  flex: 1; /* Fill remaining space below header */
+  flex: 1;
+  /* Fill remaining space below header */
   display: flex;
   flex-direction: column;
-  overflow-y: auto; /* Allow scrolling if content overflows */
+  overflow-y: auto;
+  /* Allow scrolling if content overflows */
   padding-bottom: calc(20px + env(safe-area-inset-bottom));
-  padding-top: 20px; /* Add space between header and content */
-  touch-action: pan-y; /* Allow vertical scrolling */
+  padding-top: 20px;
+  /* Add space between header and content */
+  touch-action: pan-y;
+  /* Allow vertical scrolling */
   overscroll-behavior: contain;
 }
 
@@ -145,7 +147,8 @@ const onWheel = (e) => {
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
   border-radius: 20px;
-  touch-action: pan-x pan-y; /* Allow horizontal scroll and vertical page scroll */
+  touch-action: pan-x pan-y;
+  /* Allow horizontal scroll and vertical page scroll */
 }
 
 .carousel-track::-webkit-scrollbar {
@@ -155,7 +158,8 @@ const onWheel = (e) => {
 .carousel-item {
   flex: 0 0 100%;
   width: 100%;
-  height: 45vh; /* Fixed height for the carousel */
+  height: 45vh;
+  /* Fixed height for the carousel */
   scroll-snap-align: start;
   overflow: hidden;
   background-color: #f8f8f8;
@@ -172,7 +176,8 @@ const onWheel = (e) => {
 
 .carousel-dots {
   position: absolute;
-  bottom: 32px; /* Adjust based on padding */
+  bottom: 32px;
+  /* Adjust based on padding */
   left: 0;
   right: 0;
   display: flex;
@@ -185,7 +190,7 @@ const onWheel = (e) => {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: rgba(255,255,255,0.5);
+  background: rgba(255, 255, 255, 0.5);
   transition: background 0.2s;
 }
 

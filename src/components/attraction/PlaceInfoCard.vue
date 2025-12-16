@@ -10,21 +10,17 @@
       <p class="place-description" :class="{ 'expanded': isExpanded }">
         {{ place.description }}
       </p>
-      <button 
-        v-if="place.description && place.description.length > 80" 
-        class="more-btn" 
-        @click="toggleExpand"
-      >
+      <button v-if="place.description && place.description.length > 80" class="more-btn" @click="toggleExpand">
         {{ isExpanded ? '닫기' : '더보기' }}
       </button>
     </div>
-    
+
     <div class="tags">
       <span v-for="tag in place.tags" :key="tag" class="tag">#{{ tag }}</span>
     </div>
   </div>
   <div>
-    <PlaceActionButtons :place="place" />
+    <PlaceActionButtons :place="place" @close="$emit('close')" />
   </div>
 </template>
 
@@ -47,6 +43,8 @@ const props = defineProps({
   }
 });
 
+defineEmits(['close']);
+
 const router = useRouter();
 const route = useRoute();
 const isExpanded = ref(false);
@@ -59,9 +57,9 @@ const toggleExpand = () => {
 const goToReview = () => {
   // Assuming the place ID is available in the current route params
   // or passed via props. For now, using route params as default
-  const placeId = props.place.no; 
-  router.push({ 
-    name: 'place-reviews', 
+  const placeId = props.place.no;
+  router.push({
+    name: 'place-reviews',
     params: { id: placeId },
     query: { name: props.place.name }
   });
@@ -74,7 +72,7 @@ const goToReview = () => {
   background: white;
   border-radius: 24px;
   padding: 24px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
 }
 
 .place-title {
@@ -118,7 +116,8 @@ const goToReview = () => {
   font-size: 15px;
   color: #666;
   line-height: 1.6;
-  margin: 0; /* Remove bottom margin here, controlled by wrapper */
+  margin: 0;
+  /* Remove bottom margin here, controlled by wrapper */
   display: -webkit-box;
   -webkit-line-clamp: 3;
   line-clamp: 3;
@@ -130,7 +129,8 @@ const goToReview = () => {
 .place-description.expanded {
   -webkit-line-clamp: unset;
   line-clamp: unset;
-  display: block; /* Fallback */
+  display: block;
+  /* Fallback */
 }
 
 .more-btn {
@@ -156,7 +156,8 @@ const goToReview = () => {
 
 .tag {
   background: #f0f7ff;
-  color: #0095f6; /* Primary Blue */
+  color: #0095f6;
+  /* Primary Blue */
   padding: 6px 12px;
   border-radius: 20px;
   font-size: 13px;
@@ -164,7 +165,22 @@ const goToReview = () => {
 }
 
 /* Specific tag colors from image */
-.tag:nth-child(1) { background: #e8f5e9; color: #2e7d32; } /* Greenish */
-.tag:nth-child(2) { background: #ffebee; color: #c62828; } /* Reddish */
-.tag:nth-child(3) { background: #fff8e1; color: #f9a825; } /* Yellowish */
+.tag:nth-child(1) {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+/* Greenish */
+.tag:nth-child(2) {
+  background: #ffebee;
+  color: #c62828;
+}
+
+/* Reddish */
+.tag:nth-child(3) {
+  background: #fff8e1;
+  color: #f9a825;
+}
+
+/* Yellowish */
 </style>
