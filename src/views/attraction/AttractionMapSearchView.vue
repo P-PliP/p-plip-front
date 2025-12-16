@@ -420,7 +420,7 @@ const getDefaultEndTime = (list) => {
 const toLocalISOString = (date) => {
     const offset = date.getTimezoneOffset() * 60000;
     const localDate = new Date(date.getTime() - offset);
-    return localDate.toISOString().slice(0, 19).replace('T', ' '); 
+    return localDate.toISOString().slice(0, 19); 
 };
 </script>
 

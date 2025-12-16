@@ -415,19 +415,15 @@ const openMapSearchWindow = () => {
 };
 
 const onAddItem = (item) => {
-    // Generate new ID locally
-    const newId = todoList.value.length > 0 ? Math.max(...todoList.value.map(t => t.id || 0)) + 1 : 1;
-    
     // Add to list
     todoList.value.push({
         ...item,
-        id: newId,
+        id: null,
         planId: Number(route.params.id)
     });
     
     // Re-sort
     sortListByTime();
-    
     // Note: No need to sync to store draft anymore, we just keep local state
 };
 
