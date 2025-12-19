@@ -125,6 +125,11 @@ const router = createRouter({
       path: '/my-plans/:id/map-search',
       name: 'map-search',
       component: () => import('@/views/attraction/AttractionMapSearchView.vue')
+    },
+    {
+      path: '/welcome',
+      name: 'welcome',
+      component: () => import('@/views/WelcomeView.vue')
     }
   ],
 })
@@ -134,6 +139,22 @@ import { useAuthStore } from '@/stores/auth';
 
 router.beforeEach((to, from, next) => {
   const authStore = useAuthStore();
+  const hasSeenWelcome = localStorage.getItem('welcome-seen');
+  const hasSeenWelcomeSession = sessionStorage.getItem('welcome-seen-session');
+
+  if (to.name === 'welcome') {
+    if (hasSeenWelcome || hasSeenWelcomeSession) {
+      next({ name: 'main' });
+    } else {
+      next();
+    }
+    return;
+  }
+
+  if (!hasSeenWelcome && !hasSeenWelcomeSession && to.path === '/') {
+    next({ name: 'welcome' });
+    return;
+  }
 
   if (to.matched.some(record => record.meta.requiresAuth)) {
     if (!authStore.isLoggedIn) {
