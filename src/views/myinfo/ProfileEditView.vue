@@ -57,6 +57,7 @@ import AppHeader from '@/components/common/AppHeader.vue';
 import AppPage from '@/components/common/AppPage.vue';
 import { userApi } from '@/axios/user';
 import { fileApi, IMAGE_TYPE } from '@/axios/file';
+import defaultImage from '@/assets/common/default_image.png';
 
 const router = useRouter();
 const fileInput = ref(null);
@@ -75,7 +76,7 @@ const profileImageView = computed(() => {
   if (profileImage.value && profileImage.value.path) {
     return `${import.meta.env.VITE_IMAGE_BASE_URL}${profileImage.value.path}`;
   }
-  return '/user/default.png'; // 기본 이미지 경로
+  return defaultImage; // 기본 이미지 경로
 });
 
 // Fetch user data

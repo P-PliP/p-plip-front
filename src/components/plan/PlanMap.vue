@@ -13,8 +13,8 @@
           
           <!-- Info Card (Title + Image) - Displayed ABOVE Pin -->
           <div class="marker-card">
-            <div class="marker-img" v-if="marker.image">
-              <img :src="marker.image" alt="img" />
+            <div class="marker-img">
+              <img :src="marker.image || defaultImage" alt="img" />
             </div>
             <div class="marker-title">{{ marker.title }}</div>
           </div>
@@ -34,6 +34,7 @@
 <script setup>
 import { ref, watch, toRefs, onUnmounted } from 'vue';
 import { KakaoMap, KakaoMapCustomOverlay } from 'vue3-kakao-maps';
+import defaultImage from '@/assets/common/default_image.png';
 
 const props = defineProps({
   markers: {

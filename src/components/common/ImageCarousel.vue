@@ -11,7 +11,7 @@
         :key="index" 
         class="carousel-item"
       >
-        <img :src="image" alt="Carousel Image" loading="lazy" />
+        <img :src="image || defaultImage" alt="Carousel Image" loading="lazy" />
       </div>
     </div>
 
@@ -29,6 +29,7 @@
 
 <script setup>
 import { ref } from 'vue';
+import defaultImage from '@/assets/common/default_image.png';
 
 const props = defineProps({
   images: {

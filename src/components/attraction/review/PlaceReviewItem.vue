@@ -44,12 +44,11 @@ import { useImages, useImage } from '@/composables/useImage';
 import { useRelativeTime } from '@/composables/useRelativeTime';
 import { reviewApi } from '@/axios/review';
 import { fileApi } from '@/axios/file';
-import { useDefaultImage } from '@/composables/useDefaultImage';
+import defaultImage from '@/assets/common/default_image.png';
 
 const { getImagesUrl } = useImages();
 const { getImageUrl } = useImage();
 const { formatTime } = useRelativeTime();
-const defaultImage = useDefaultImage();
 
 const emit = defineEmits(['delete', 'edit']);
 

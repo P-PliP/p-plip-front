@@ -68,8 +68,8 @@
             <div class="todo-card-wrapper drag-handle">
               <!-- Card Content -->
               <div class="todo-card">
-                <div class="todo-img" v-if="element.image">
-                  <img :src="element.image" :alt="element.title">
+                <div class="todo-img" v-if="element.image || defaultImage">
+                  <img :src="element.image || defaultImage" :alt="element.title">
                 </div>
                 <div class="todo-info">
                   <h3 class="todo-title">{{ element.title }}</h3>
@@ -132,6 +132,7 @@
 import { ref, computed, onMounted, nextTick } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import draggable from 'vuedraggable';
+import defaultImage from '@/assets/common/default_image.png';
 import ToDoModal from '@/components/plan/ToDoModal.vue';
 import PlanMapModal from '@/components/plan/PlanMapModal.vue';
 import AppHeader from '@/components/common/AppHeader.vue';

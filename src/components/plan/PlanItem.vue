@@ -4,7 +4,7 @@
       {{ plan.status === 'completed' ? '완료' : '예정' }}
     </div>
     <div class="plan-image-wrapper">
-      <img :src="plan.image || 'https://via.placeholder.com/100'" alt="Plan Thumbnail" class="plan-image" />
+      <img :src="(plan.image && plan.image !== 'null' && plan.image !== 'undefined') ? plan.image : defaultImage" alt="Plan Thumbnail" class="plan-image" />
     </div>
     <div class="plan-info">
       <h3 class="plan-title">{{ plan.title }}</h3>
@@ -14,6 +14,8 @@
 </template>
 
 <script setup>
+import defaultImage from '@/assets/common/default_image.png';
+
 defineProps({
   plan: {
     type: Object,

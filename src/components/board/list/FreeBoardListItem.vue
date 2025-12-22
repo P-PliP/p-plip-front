@@ -11,7 +11,7 @@
       <div class="post-meta">
         <div class="author-info">
           <div class="author-avatar" :style="{ backgroundColor: post.avatarColor }" v-if="post.avatarImage">
-            <img :src="post.avatarImage" alt="Author" class="avatar-img">
+            <img :src="post.avatarImage || defaultImage" alt="Author" class="avatar-img">
           </div>
           <span class="author-name">{{ post.authorName }}</span>
         </div>
@@ -54,6 +54,7 @@
 import { useRelativeTime } from '@/composables/useRelativeTime';
 import { useImage } from '@/composables/useImage';
 import { onMounted } from 'vue';
+import defaultImage from '@/assets/common/default_image.png';
 
 const { formatTime } = useRelativeTime();
 const { getImageUrl } = useImage();

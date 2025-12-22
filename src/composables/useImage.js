@@ -1,15 +1,18 @@
+import defaultImage from '@/assets/common/default_image.png';
+
 export const useImage = () => {
     const getImageUrl = (image) => {
-        if (!image) return '';
+        if (!image) return defaultImage;
         const baseUrl = import.meta.env.VITE_IMAGE_BASE_URL || '';
 
         if (typeof image === 'string') {
+            if (image.startsWith('http')) return image;
             return `${baseUrl}${image}`;
         }
         if (image.path) {
             return `${baseUrl}${image.path}`;
         }
-        return '';
+        return defaultImage;
     };
 
     return {

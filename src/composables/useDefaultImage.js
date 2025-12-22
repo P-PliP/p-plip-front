@@ -1,4 +1,4 @@
-import defaultAvatar from '@/assets/default_avatar.png';
+import defaultAvatar from '@/assets/common/default_image.png';
 
 export const useDefaultImage = () => {
     return defaultAvatar;
