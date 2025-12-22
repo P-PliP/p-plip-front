@@ -177,20 +177,22 @@ const onLoadKakaoMap = (map) => {
   position: fixed;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
+  right: 0;
+  bottom: 0;
   background: rgba(0, 0, 0, 0.6);
   z-index: 10000;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 20px;
+  box-sizing: border-box;
 }
 
 .modal-container {
   width: 100%;
-  max-width: 500px;
+  max-width: 360px;
   background: white;
+  margin: auto;
   border-radius: 16px;
   overflow: hidden;
   position: relative;
