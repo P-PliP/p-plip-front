@@ -113,8 +113,6 @@
       <nav-bar></nav-bar>
     </div>
 
-    <!-- Chat Modal -->
-    <ChatModal />
   </div>
 </template>
 

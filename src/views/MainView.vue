@@ -6,8 +6,8 @@
                 <!-- Exact Plus Icon Match -->
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
                     class="logo-icon">
-                    <circle cx="12" cy="12" r="12" fill="#3B82F6" />
-                    <path d="M12 7V17M7 12H17" stroke="white" stroke-width="2.5" stroke-linecap="round" />
+                    <circle cx="12" cy="12" r="10" stroke="#3B82F6" stroke-width="2" />
+                    <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" fill="#3B82F6" />
                 </svg>
                 <span class="logo-text">P-PLIP</span>
             </div>
