@@ -2,9 +2,14 @@
   <div class="bottom-content-wrapper">
     <!-- Image Carousel -->
     <div class="image-carousel">
-      <div ref="carouselTrack" class="carousel-track" @scroll="onScroll" @wheel="onWheel">
-        <div v-for="(img, index) in place.images" :key="index" class="carousel-item">
-          <img :src="img" alt="Place Image" class="place-image" />
+      <div class="carousel-track" ref="carouselTrack" @scroll="onScroll" @wheel="onWheel">
+        <template v-if="place.images && place.images.length > 0">
+          <div v-for="(img, index) in place.images" :key="index" class="carousel-item">
+            <img :src="img || defaultImage" alt="Place Image" class="place-image" />
+          </div>
+        </template>
+        <div v-else class="carousel-item">
+          <img :src="defaultImage" alt="Default Place Image" class="place-image" />
         </div>
       </div>
       <!-- Dots indicator -->
@@ -26,6 +31,7 @@
 import { ref } from 'vue';
 import PlaceInfoCard from './PlaceInfoCard.vue';
 import PlaceActionButtons from './PlaceActionButtons.vue';
+import defaultImage from '@/assets/common/default_image.png';
 
 const props = defineProps({
   place: {

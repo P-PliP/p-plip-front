@@ -26,7 +26,7 @@
     <!-- User Info -->
     <div class="user-info-bar">
       <div class="author-avatar" :style="{ backgroundColor: post.avatarColor || '#ccc' }">
-        <img :src="post.avatarImage || defaultAvatar" alt="Author" class="avatar-img">
+        <img :src="post.avatarImage || defaultImage" alt="Author" class="avatar-img">
       </div>
       <span class="author-name">{{ post.authorName }}</span>
 
@@ -75,7 +75,7 @@
 <script setup>
 import { ref, watch, onMounted, computed } from 'vue';
 import { useRelativeTime } from '@/composables/useRelativeTime';
-import defaultAvatar from '@/assets/default_avatar.png';
+import defaultImage from '@/assets/common/default_image.png';
 import { useImage, useImages } from '@/composables/useImage';
 import { useAuthStore } from '@/stores/auth';
 import { boardApi } from '@/axios/board';

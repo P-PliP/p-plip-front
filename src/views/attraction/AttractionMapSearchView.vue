@@ -76,7 +76,39 @@
         </div>
       </div>
 
-
+      <!-- Search Results List -->
+      <div class="search-results-card" v-if="hasSearched">
+        <div v-if="isLoading && results.length === 0" class="loading-state">
+           <div class="spinner"></div>
+           Loading...
+        </div>
+        <div v-else-if="results.length === 0" class="empty-state">
+           검색 결과가 없습니다.
+        </div>
+        <div v-else class="results-list" @scroll="onListScroll">
+           <div 
+             v-for="place in results" 
+             :key="getPlaceId(place)" 
+             class="place-item"
+             :class="{ active: selectedPlace && getPlaceId(selectedPlace) === getPlaceId(place) }"
+             @click="selectPlace(place)"
+           >
+              <div class="place-img">
+                 <img :src="place.firstImage1 || place.firstImage2 || defaultImage" alt="place" loading="lazy" />
+              </div>
+              <div class="place-info">
+                 <h4 class="place-name">{{ place.title }}</h4>
+                 <p class="place-addr">{{ place.addr1 }}</p>
+                 <button class="add-btn" @click.stop="addToPlan(place)">+ 계획에 추가</button>
+              </div>
+           </div>
+           
+           <div v-if="isLoading && results.length > 0" class="loading-state">
+              <div class="spinner"></div>
+           </div>
+        </div>
+      </div>
+     
     </div>
 
     <!-- Clear Map Button (Bottom Left) -->
@@ -138,7 +170,9 @@ import markerShopping from '@/assets/markers/marker_shopping.png'
 import markerLeports from '@/assets/markers/marker_leports.png'
 import markerFestival from '@/assets/markers/marker_festival.png'
 import markerCourse from '@/assets/markers/marker_course.png'
+
 import markerCurrent from '@/assets/markers/marker_current.png'
+import defaultImage from '@/assets/common/default_image.png';
 
 const props = defineProps({
     existingItems: {
@@ -410,6 +444,13 @@ const loadMore = async () => {
         console.error('Load more error:', error);
     } finally {
         isLoading.value = false;
+    }
+};
+
+const onListScroll = (e) => {
+    const { scrollTop, clientHeight, scrollHeight } = e.target;
+    if (scrollTop + clientHeight >= scrollHeight - 50) {
+        loadMore();
     }
 };
 

@@ -1,39 +1,21 @@
 <template>
   <div class="carousel-container" :style="{ aspectRatio }">
-    <div 
-      class="carousel-track" 
-      ref="trackRef"
-      @scroll="handleScroll"
-      @wheel.prevent="onWheel"
-    >
-      <div 
-        v-for="(image, index) in images" 
-        :key="index" 
-        class="carousel-item"
-      >
-        <img 
-          :src="image" 
-          alt="Carousel Image" 
-          loading="lazy" 
-          draggable="false"
-        />
+    <div class="carousel-track" ref="trackRef" @scroll="handleScroll" @wheel.prevent="onWheel">
+      <div v-for="(image, index) in images" :key="index" class="carousel-item">
+        <img :src="image || defaultImage" alt="Carousel Image" loading="lazy" draggable="false" />
       </div>
     </div>
 
     <!-- Indicators -->
     <div v-if="images.length > 1" class="indicators">
-      <span 
-        v-for="(image, index) in images" 
-        :key="index" 
-        class="dot"
-        :class="{ active: activeIndex === index }"
-      ></span>
+      <span v-for="(image, index) in images" :key="index" class="dot" :class="{ active: activeIndex === index }"></span>
     </div>
   </div>
 </template>
 
 <script setup>
 import { ref } from 'vue';
+import defaultImage from '@/assets/common/default_image.png';
 
 const props = defineProps({
   images: {
@@ -58,7 +40,7 @@ const handleScroll = () => {
 let wheelTimeout = null;
 const onWheel = (e) => {
   if (wheelTimeout) return;
-  
+
   // Basic threshold to ignore small trackpad jitters
   if (Math.abs(e.deltaY) < 10) return;
 
@@ -70,7 +52,7 @@ const onWheel = (e) => {
       left: nextPos * trackRef.value.clientWidth,
       behavior: 'smooth'
     });
-    
+
     // Cooldown to prevent rapid skipping
     wheelTimeout = setTimeout(() => {
       wheelTimeout = null;
@@ -94,8 +76,10 @@ const onWheel = (e) => {
   scroll-snap-type: x mandatory;
   width: 100%;
   height: 100%;
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* IE/Edge */
+  scrollbar-width: none;
+  /* Firefox */
+  -ms-overflow-style: none;
+  /* IE/Edge */
   cursor: grab;
   touch-action: pan-x;
 }

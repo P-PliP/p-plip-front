@@ -78,6 +78,7 @@ export const usePlanStore = defineStore('plan', () => {
                 pageSize: 100, // Fetch enough for now, or implement strict pagination later
                 ...params
             });
+            console.log("fetchPlans response:", data);
 
             // The interceptor returns response.data.data if success is true
             // So 'data' here is the inner data object containing 'list'

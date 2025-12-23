@@ -123,6 +123,7 @@ import { ref, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
 import { userApi } from '@/axios/user'; // Import userApi
+import defaultImage from '@/assets/common/default_image.png';
 
 import NavBar from '@/components/common/Navbar.vue';
 import ChatModal from '@/components/common/ChatModal.vue';
@@ -142,7 +143,7 @@ const profileImageView = computed(() => {
   if (profileImage.value && profileImage.value.path) {
     return `${import.meta.env.VITE_IMAGE_BASE_URL}${profileImage.value.path}`;
   }
-  return '/user/default.png';
+  return defaultImage;
 });
 
 // Fetch user profile on mount
