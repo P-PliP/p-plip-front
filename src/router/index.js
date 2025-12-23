@@ -18,6 +18,11 @@ const router = createRouter({
       component: MainView
     },
     {
+      path: '/map',
+      name: 'attraction-map',
+      component: () => import('@/views/attraction/AttractionMapView.vue')
+    },
+    {
       path: '/plan',
       name: 'plan',
       component: PlanView,
@@ -136,6 +141,11 @@ const router = createRouter({
       path: '/welcome',
       name: 'welcome',
       component: () => import('@/views/WelcomeView.vue')
+    },
+    {
+      path: '/ai-guide',
+      name: 'ai-guide',
+      component: () => import('@/views/ai/AiSearchGuideView.vue')
     }
   ],
 })
