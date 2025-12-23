@@ -11,7 +11,12 @@
         :key="index" 
         class="carousel-item"
       >
-        <img :src="image" alt="Carousel Image" loading="lazy" />
+        <img 
+          :src="image" 
+          alt="Carousel Image" 
+          loading="lazy" 
+          draggable="false"
+        />
       </div>
     </div>
 
@@ -92,6 +97,7 @@ const onWheel = (e) => {
   scrollbar-width: none; /* Firefox */
   -ms-overflow-style: none; /* IE/Edge */
   cursor: grab;
+  touch-action: pan-x;
 }
 
 .carousel-track::-webkit-scrollbar {
@@ -109,6 +115,8 @@ const onWheel = (e) => {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  user-select: none;
+  -webkit-user-drag: none;
 }
 
 .indicators {
