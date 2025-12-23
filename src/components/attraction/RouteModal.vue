@@ -148,7 +148,6 @@ const fetchRoute = async () => {
             });
             routePath.value = path;
             
-            fitBounds();
         }
     } catch (error) {
         console.error("Failed to fetch route:", error);
@@ -160,14 +159,15 @@ const fetchRoute = async () => {
 const fitBounds = () => {
     if (mapRef.value && window.kakao && window.kakao.maps) {
         const bounds = new window.kakao.maps.LatLngBounds();
-        bounds.extend(new window.kakao.maps.LatLng(props.origin.lat, props.origin.lng));
-        bounds.extend(new window.kakao.maps.LatLng(props.destination.lat, props.destination.lng));
-        mapRef.value.setBounds(bounds);
+        bounds.extend(new window.kakao.maps.LatLng(Number(props.origin.lat), Number(props.origin.lng)));
+        bounds.extend(new window.kakao.maps.LatLng(Number(props.destination.lat), Number(props.destination.lng)));
+        mapRef.value.setBounds(bounds, 100, 50, 100, 50);
     }
 };
 
 const onLoadKakaoMap = (map) => {
     mapRef.value = map;
+    fitBounds();
     fetchRoute();
 };
 </script>
