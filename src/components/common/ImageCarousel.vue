@@ -1,8 +1,24 @@
 <template>
   <div class="carousel-container" :style="{ aspectRatio }">
-    <div class="carousel-track" ref="trackRef" @scroll="handleScroll" @wheel.prevent="onWheel">
-      <div v-for="(image, index) in images" :key="index" class="carousel-item">
-        <img :src="image || defaultImage" alt="Carousel Image" loading="lazy" draggable="false" />
+    <div 
+      class="carousel-track" 
+      ref="trackRef"
+      @scroll="handleScroll"
+      @wheel.prevent="onWheel"
+    >
+      <div 
+        v-for="(image, index) in images" 
+        :key="index" 
+        class="carousel-item"
+      >
+        <img 
+          :src="image || defaultImage" 
+          alt="Carousel Image" 
+          loading="lazy" 
+          draggable="false"
+          @dragstart.prevent
+          @contextmenu.prevent
+        />
       </div>
     </div>
 
@@ -73,15 +89,15 @@ const onWheel = (e) => {
 .carousel-track {
   display: flex;
   overflow-x: auto;
+  overflow-y: hidden; /* 세로 스크롤 명시적 차단 */
   scroll-snap-type: x mandatory;
   width: 100%;
   height: 100%;
   scrollbar-width: none;
-  /* Firefox */
   -ms-overflow-style: none;
-  /* IE/Edge */
   cursor: grab;
-  touch-action: pan-x;
+  touch-action: pan-x; /* 수평 터치만 허용, 수직은 무시 */
+  overscroll-behavior-y: contain; /* 위아래 바운스 방지 */
 }
 
 .carousel-track::-webkit-scrollbar {
@@ -101,6 +117,11 @@ const onWheel = (e) => {
   object-fit: cover;
   user-select: none;
   -webkit-user-drag: none;
+  -khtml-user-drag: none;
+  -moz-user-drag: none;
+  -o-user-drag: none;
+  /* 아래 추가: 마우스 오른쪽 클릭 및 드래그 시 발생하는 잔상 방지 */
+  pointer-events: none; 
 }
 
 .indicators {
