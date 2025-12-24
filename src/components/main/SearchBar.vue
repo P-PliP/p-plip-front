@@ -103,13 +103,11 @@ const selectDistance = (dist) => {
   searchDist.value = dist;
   isNoLimit.value = false;
   isDropdownOpen.value = false;
-  handleSearch();
 };
 
 const selectNoLimit = () => {
   isNoLimit.value = true;
   isDropdownOpen.value = false;
-  handleSearch();
 };
 
 const handleSearch = () => {
