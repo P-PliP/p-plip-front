@@ -106,6 +106,23 @@ const shouldInitialFetch = computed(() => {
     return !(aiSearchResults.value && aiSearchResults.value.length > 0);
 });
 
+// User Request: If no AI results, we want to reset to current location.
+// MapComponent uses 'lastMapCenter' from store if available.
+// So if we don't have AI results, we should clear lastMapCenter so MapComponent fetches current location.
+if (!aiSearchResults.value || aiSearchResults.value.length === 0) {
+    console.log("No persisted AI results. Clearing lastMapCenter to force Current Location.");
+    locationStore.setMapCenter(null, null); // Or directly if store allows, but action is safer if available
+    // Actually, checking location.js, setMapCenter(lat, lng) => value = {lat, lng}
+    // Passing null, null results in {lat: null, lng: null} which is truthy object!
+    // We need to set it to null.
+    // Since we are using setup store, we can access the ref directly if returned?
+    // User added 'locationStore.setMapCenter' but 'lastMapCenter' is also returned.
+    // Let's try directly setting the ref value if possible, or create a clear action.
+    // But wait, 'locationStore' is the store instance. 'lastMapCenter' is a property on it.
+    // If it's a ref in setup store, it's unwrapped.
+    locationStore.lastMapCenter = null;
+}
+
 const currentMapCenter = ref({ lat: 33.450701, lng: 126.570667 });
 
 const onSearch = ({ query, dist }) => {
@@ -260,6 +277,8 @@ onMounted(() => {
                 mapComp.value.fitBoundsToMarkers(places.value);
              }
         }, 100);
+    } else {
+        
     }
 });
 
