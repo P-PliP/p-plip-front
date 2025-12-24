@@ -460,6 +460,13 @@ const selectPlace = async (place) => {
     lng: Number(place.longitude)
   };
 
+  if (mapInstance.value && window.kakao && window.kakao.maps) {
+    const moveLatLon = new window.kakao.maps.LatLng(Number(place.latitude), Number(place.longitude));
+    mapInstance.value.setLevel(2, { animate: true });
+    mapInstance.value.panTo(moveLatLon);
+  }
+  isListExpanded.value = false;
+
   try {
     const id = getPlaceId(place);
     if (!id) return;

@@ -205,8 +205,9 @@ const fetchNextPage = () => {
 
 const moveMapToPlace = (place) => {
     if (mapComp.value) {
-        mapComp.value.moveToLocation(place.latitude, place.longitude);
+        mapComp.value.moveToLocation(place.latitude, place.longitude, 2);
     }
+    closeSheet();
 };
 
 // Drag Logic provided by existing code
