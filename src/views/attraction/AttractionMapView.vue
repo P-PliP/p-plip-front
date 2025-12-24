@@ -277,8 +277,6 @@ onMounted(() => {
                 mapComp.value.fitBoundsToMarkers(places.value);
              }
         }, 100);
-    } else {
-        
     }
 });
 
